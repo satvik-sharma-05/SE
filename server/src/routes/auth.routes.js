@@ -15,7 +15,7 @@ const router = express.Router();
 // Helper function for consistent OAuth success handling
 const handleOAuthSuccess = async (user, res) => {
   const token = jwt.sign({ id: user._id }, config.JWT_SECRET, { expiresIn: "7d" });
-  
+
   if (user.role === "pending") {
     // Redirect to role selection page
     res.redirect(`${config.FRONTEND_URL}/select-role?tempId=${user._id}`);
@@ -29,36 +29,61 @@ const handleOAuthSuccess = async (user, res) => {
    1️⃣ REGISTER (email/password)
 -------------------------- */
 router.post("/register", async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, role } = req.body;
+  console.log("📥 REGISTER BODY:", req.body);
 
   try {
-    if (!email || !name || !password)
+    if (!name || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
+    }
 
     const existing = await User.findOne({ email });
-    if (existing)
+    if (existing) {
       return res.status(400).json({ message: "Email already registered" });
+    }
 
-    if (password.length < 6)
+    if (password.length < 6) {
       return res.status(400).json({ message: "Password must be at least 6 characters" });
+    }
 
     const user = await User.create({
       name,
       email,
       password,
-      role: "pending",
+      role: role || "pending",
     });
 
-    res.status(201).json({
-      success: true,
-      message: "Registration successful. Please select your role.",
-      redirect: `/select-role?tempId=${user._id}`,
+    const token = jwt.sign(
+      { id: user._id },
+      config.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    let redirect = "/select-role";
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: false,
     });
+
+    res.status(200).json({
+      success: true,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+      redirect,
+    });
+
   } catch (error) {
     console.error("Register error:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
+
 
 /* -------------------------
    2️⃣ LOGIN (email/password)
@@ -80,9 +105,14 @@ router.post("/login", async (req, res) => {
     else if (user.role === "student") redirect = "/profile";
     else if (user.role === "pending") redirect = `/select-role?tempId=${user._id}`;
 
+    res.cookie("token", token, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: false, // true in production HTTPS
+    });
+
     res.status(200).json({
       success: true,
-      token,
       user: {
         id: user._id,
         name: user.name,
@@ -91,6 +121,7 @@ router.post("/login", async (req, res) => {
       },
       redirect,
     });
+
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ message: "Server error" });
@@ -109,8 +140,12 @@ router.get("/logout", (req, res) => {
    4️⃣ CURRENT USER
 -------------------------- */
 router.get("/me", auth, async (req, res) => {
-  res.json({ user: req.user });
+  res.json({
+    success: true,
+    user: req.user
+  });
 });
+
 
 /* -------------------------
    🟢 GITHUB OAUTH (Fixed & Clean)
@@ -161,7 +196,7 @@ router.get(
     }
   }
 );
-  
+
 
 /* -------------------------
    🔵 GOOGLE OAUTH (Fixed & Consistent)

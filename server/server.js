@@ -27,8 +27,12 @@ import { fetchDevpostEvents } from "./src/services/devpost.service.js";
 import { fetchMLHEvents } from "./src/services/mlhService.js";
 import { fetchClist } from "./src/services/clist.js";
 
-// ✅ Initialize app
-const app = express();
+
+const app = express();   // ✅ MUST BE FIRST
+
+app.use(express.json({ limit: "100mb" }));
+app.use(express.urlencoded({ extended: true }));
+
 
 // ✅ Connect to DB
 await connectDB();
@@ -73,14 +77,29 @@ app.use(
 );
 
 // ✅ CORS (MUST be configured exactly like this)
+const allowedOrigins = [
+  "http://localhost:5173", // ✅ local dev
+  "https://satvik-kjyai.ondigitalocean.app" // ✅ production
+];
+
 app.use(
   cors({
-    origin: ["http://localhost:5173"], // ✅ exact frontend origin
-    credentials: true, // ✅ allow cookies to flow
+    origin: function (origin, callback) {
+      // allow requests with no origin (Postman, curl, server-to-server)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        return callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
 
 // ✅ Other middleware
 app.use(compression());
@@ -171,7 +190,7 @@ const PYTHON_SCRIPT = path.resolve("server/src/services/mlh_scraper.py");
 // 🕒 Run once every 6 hours (at 00:00, 06:00, 12:00, 18:00)
 cron.schedule("0 */6 * * *", () => {
   console.log("🕒 [CRON] Starting MLH cache refresh...");
-  
+
   exec(`python "${PYTHON_SCRIPT}"`, (error, stdout, stderr) => {
     if (error) {
       console.error("❌ [CRON] MLH scrape failed:", error.message);

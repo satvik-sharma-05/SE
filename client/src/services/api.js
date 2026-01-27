@@ -1,14 +1,13 @@
 // src/services/api.js
 import axios from "axios";
-
 // ✅ Create reusable axios instance with proper configuration
 const getBaseURL = () => {
-  // Check if we're in development or production
   if (import.meta.env.DEV) {
-    return import.meta.env.VITE_API_BASE || "http://localhost:5000/api";
+    return "http://localhost:5000/api";
   }
-  return import.meta.env.VITE_API_BASE || "/api"; // Relative path for production
+  return "/api";
 };
+
 
 const api = axios.create({
   baseURL: getBaseURL(),
@@ -20,6 +19,11 @@ const api = axios.create({
   }
 });
 
+if (import.meta.env.DEV) {
+  console.log("🔥 API BASE URL (runtime):", api.defaults.baseURL);
+}
+
+
 // ✅ Enhanced request interceptor
 api.interceptors.request.use(
   (config) => {
@@ -30,7 +34,10 @@ api.interceptors.request.use(
     
     // Log request for debugging (only in development)
     if (import.meta.env.DEV) {
-      console.log(`🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`, config.params);
+console.log(
+  `🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`,
+  config.data
+);
     }
     
     return config;

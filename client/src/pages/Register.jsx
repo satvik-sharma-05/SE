@@ -40,9 +40,13 @@ export default function RegisterPage() {
     }
   };
 
-  const handleOAuth = (provider) => {
-    window.location.href = `http://localhost:5000/api/auth/${provider}`;
-  };
+    const handleOAuth = (provider) => {
+  const base =
+    import.meta.env.VITE_API_BASE?.replace("/api", "") ||
+    "http://localhost:5000";
+
+  window.location.href = `${base}/api/auth/${provider}`;
+};
 
   const handleHome = () => {
     navigate("/");
