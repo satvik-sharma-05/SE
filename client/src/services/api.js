@@ -1,23 +1,28 @@
 // src/services/api.js
 import axios from "axios";
 // ✅ Create reusable axios instance with proper configuration
-const getBaseURL = () => {
-  if (import.meta.env.DEV) {
-    return "http://localhost:5000/api";
-  }
-  return "/api";
-};
+// src/services/api.js
+import axios from "axios";
 
+const API_BASE =
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.DEV
+    ? "http://localhost:5000/api"
+    : "");
 
 const api = axios.create({
-  baseURL: getBaseURL(),
+  baseURL: API_BASE,
   withCredentials: true,
   timeout: 30000,
   headers: {
     "Content-Type": "application/json",
-    "Accept": "application/json"
-  }
+    Accept: "application/json",
+  },
 });
+
+
+
+
 
 if (import.meta.env.DEV) {
   console.log("🔥 API BASE URL (runtime):", api.defaults.baseURL);

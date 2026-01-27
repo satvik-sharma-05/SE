@@ -53,8 +53,10 @@ app.use(
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://your-frontend.vercel.app"
+  "https://hacktrack1-mu.vercel.app",
+  "https://hacktrack1-mu.vercel.app/", // include slash
 ];
+
 
 app.use(
   cors({
