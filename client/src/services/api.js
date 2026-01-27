@@ -1,7 +1,5 @@
 // src/services/api.js
-import axios from "axios";
-// ✅ Create reusable axios instance with proper configuration
-// src/services/api.js
+
 import axios from "axios";
 
 const API_BASE =
