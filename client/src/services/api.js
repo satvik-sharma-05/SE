@@ -671,4 +671,3 @@ export function normalizeEvents(events = []) {
 
 // Export api instance
 export default api;
-export { api };
