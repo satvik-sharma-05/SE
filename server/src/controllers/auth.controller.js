@@ -41,46 +41,6 @@ export const registerUser = async (req, res) => {
 
 
 // ✅ Login
-router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-
-  try {
-    const user = await User.findOne({ email }).select("+password");
-    if (!user) {
-      return res.status(400).json({ message: "Invalid email or password" });
-    }
-
-    const match = await user.matchPassword(password);
-    if (!match) {
-      return res.status(400).json({ message: "Invalid email or password" });
-    }
-
-    const token = jwt.sign({ id: user._id }, config.JWT_SECRET, {
-      expiresIn: "7d",
-    });
-
-    let redirect = "/";
-    if (user.role === "organizer") redirect = "/organizer";
-    else if (user.role === "student") redirect = "/profile";
-    else if (user.role === "pending")
-      redirect = `/select-role?tempId=${user._id}`;
-
-    res.status(200).json({
-      success: true,
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
-      redirect,
-    });
-  } catch (err) {
-    console.error("Login error:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
 
 
 // ✅ Logout

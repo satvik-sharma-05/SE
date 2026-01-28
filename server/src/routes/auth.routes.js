@@ -89,7 +89,7 @@ router.post("/register", async (req, res) => {
    2️⃣ LOGIN (email/password)
 -------------------------- */
 router.post("/login", async (req, res) => {
-  const email = req.body.email?.toLowerCase();
+  const email = req.body.email?.toLowerCase().trim();
   const { password } = req.body;
 
   try {
@@ -129,6 +129,7 @@ router.post("/login", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
 
 
 
