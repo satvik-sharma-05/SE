@@ -1,6 +1,6 @@
 flask
-flask-cors
-sentence-transformers==2.6.1
+sentence-transformers
+scikit-learn
 numpy
-gunicorn
-torch==2.2.0
+beautifulsoup4
+requests
