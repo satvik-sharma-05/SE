@@ -1,14 +1,13 @@
 // src/services/api.js
+import axios from "axios";
 
-import Axios from "axios";
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
-const API_BASE =
-  import.meta.env.VITE_API_BASE_URL ||
-  (import.meta.env.DEV
-    ? "http://localhost:5000/api"
-    : "");
+if (!API_BASE) {
+  throw new Error("❌ VITE_API_BASE_URL is not defined");
+}
 
-const api = Axios.create({
+const api = axios.create({
   baseURL: API_BASE,
   withCredentials: true,
   timeout: 30000,
@@ -17,6 +16,8 @@ const api = Axios.create({
     Accept: "application/json",
   },
 });
+
+
 
 
 
