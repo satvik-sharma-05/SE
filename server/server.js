@@ -32,6 +32,8 @@ import { getLiveMLH, getMLHHealth } from "./src/controllers/events.controller.js
 
 // ----------------------------------------------------
 // ✅ INIT APP
+const app = express();
+
 // ----------------------------------------------------
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
