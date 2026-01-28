@@ -46,7 +46,6 @@ export function AuthProvider({ children }) {
     const res = await api.post("/auth/login", {
       email,
       password,
-      role, // 🔥 REQUIRED
     });
 
     const { token, user: userData } = res.data;

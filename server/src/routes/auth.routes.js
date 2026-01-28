@@ -113,6 +113,12 @@ router.post("/login", async (req, res) => {
     else if (user.role === "pending")
       redirect = `/select-role?tempId=${user._id}`;
 
+    res.cookie("token", token, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: config.NODE_ENV === "production",
+    });
+
     res.status(200).json({
       success: true,
       token,
@@ -124,6 +130,7 @@ router.post("/login", async (req, res) => {
       },
       redirect,
     });
+
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).json({ message: "Server error" });
