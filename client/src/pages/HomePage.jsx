@@ -17,7 +17,7 @@ export default function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   useEffect(() => {
-    fetch("http://localhost:5000/api/events/live")
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/events/live`) 
       .then(res => res.json())
       .then(data => {
         const list = Array.isArray(data) ? data : data.events || [];

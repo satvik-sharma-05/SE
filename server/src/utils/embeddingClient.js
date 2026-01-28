@@ -1,7 +1,8 @@
 // src/utils/embeddingClient.js
 import fetch from "node-fetch";
 
-const EMBEDDING_URL = "http://localhost:5002";  // ← USE localhost EVERYWHERE
+const EMBEDDING_URL =
+  process.env.EMBEDDING_URL || "http://localhost:5002";
 
 export async function getEmbedding(text) {
   try {

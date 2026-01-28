@@ -1,3 +1,6 @@
 # Configuration file
 DEBUG = True
-CORS_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"]
+CORS_ORIGINS = [
+    "http://localhost:5173",
+    "https://hacktrack1-mu.vercel.app"
+]
