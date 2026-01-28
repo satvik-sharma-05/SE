@@ -50,8 +50,8 @@ export const config = {
 
   // ✅ Embeddings (OPTIONAL, SAFE DEFAULT)
   EMBEDDING_URL:
-    process.env.EMBEDDING_URL ||
-    (isProd ? null : "http://localhost:5002"),
+  process.env.EMBEDDING_URL ||
+  "http://localhost:5002",
 
   // ✅ Cache
   CACHE_TTL_MIN: parseInt(process.env.CACHE_TTL_MIN || "180", 10),
