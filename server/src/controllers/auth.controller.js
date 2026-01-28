@@ -41,33 +41,47 @@ export const registerUser = async (req, res) => {
 
 
 // ✅ Login
-export const loginUser = async (req, res) => {
+router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
   try {
-    const { email, password } = req.body;
+    const user = await User.findOne({ email }).select("+password");
+    if (!user) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
 
-    const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: "User not found" });
+    const match = await user.matchPassword(password);
+    if (!match) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
 
-    const isMatch = await user.matchPassword(password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
-
-    const token = generateToken(user._id);
-
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax",
+    const token = jwt.sign({ id: user._id }, config.JWT_SECRET, {
+      expiresIn: "7d",
     });
 
-    res.json({
+    let redirect = "/";
+    if (user.role === "organizer") redirect = "/organizer";
+    else if (user.role === "student") redirect = "/profile";
+    else if (user.role === "pending")
+      redirect = `/select-role?tempId=${user._id}`;
+
+    res.status(200).json({
       success: true,
-      message: "Login successful",
-      user: { id: user._id, name: user.name, email: user.email },
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+      redirect,
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error("Login error:", err);
+    res.status(500).json({ message: "Server error" });
   }
-};
+});
+
 
 // ✅ Logout
 export const logoutUser = (req, res) => {
