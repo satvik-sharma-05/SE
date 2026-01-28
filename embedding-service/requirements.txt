@@ -1,8 +1,0 @@
-flask
-flask-cors
-sentence-transformers
-scikit-learn
-numpy
-requests
-gunicorn
-torch --index-url https://download.pytorch.org/whl/cpu

@@ -164,6 +164,30 @@ router.post("/recommend", auth, async (req, res) => {
       "name bio skills interests preferredRoles college location graduationYear domainInterest profileEmbedding"
     );
 
+    if (!currentUser.profileEmbedding || currentUser.profileEmbedding.length === 0) {
+  const profileText = [
+    currentUser.bio,
+    ...(currentUser.skills || []),
+    ...(currentUser.interests || []),
+    ...(currentUser.domainInterest || [])
+  ].filter(Boolean).join(" ");
+
+  if (!profileText.trim()) {
+    return res.status(400).json({
+      success: false,
+      message: "Please update your profile with skills or interests."
+    });
+  }
+
+  const embedding = await getEmbedding(profileText);
+
+  currentUser.profileEmbedding = embedding;
+  await currentUser.save();
+
+  console.log("✅ Auto-generated profile embedding for", currentUser.name);
+}
+
+
     if (!currentUser) {
       return res.status(404).json({ 
         success: false, 
