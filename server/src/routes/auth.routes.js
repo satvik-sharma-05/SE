@@ -89,7 +89,8 @@ router.post("/register", async (req, res) => {
    2️⃣ LOGIN (email/password)
 -------------------------- */
 router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
+  const email = req.body.email?.toLowerCase();
+  const { password } = req.body;
 
   try {
     const user = await User.findOne({ email }).select("+password");
@@ -123,11 +124,12 @@ router.post("/login", async (req, res) => {
       },
       redirect,
     });
-  } catch (error) {
-    console.error("Login error:", error);
+  } catch (err) {
+    console.error("Login error:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
+
 
 
 /* -------------------------
