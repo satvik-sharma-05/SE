@@ -57,20 +57,32 @@ app.use(
 const allowedOrigins = [
   "http://localhost:5173",
   "https://hacktrack1-mu.vercel.app",
-  "https://hacktrack1-mu.vercel.app/", // include slash
+  "https://hacktrack1-git-main-satviks-projects-f9a33fe2.vercel.app",
 ];
-
 
 app.use(
   cors({
-    origin(origin, callback) {
+    origin: function (origin, callback) {
+      // allow requests with no origin (Postman, server-to-server)
       if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      // 🔥 Allow all Vercel preview URLs safely
+      if (origin.endsWith(".vercel.app")) {
+        return callback(null, true);
+      }
+
       return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
 
 app.use(compression());
 app.use(express.json({ limit: "1mb" }));
