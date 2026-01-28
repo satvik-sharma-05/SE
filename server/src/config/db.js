@@ -6,6 +6,7 @@ export async function connectDB() {
   try {
     const conn = await mongoose.connect(config.MONGO_URI, {
       useNewUrlParser: true,
+      dbName: "hacktrack",
       useUnifiedTopology: true,
     });
 
