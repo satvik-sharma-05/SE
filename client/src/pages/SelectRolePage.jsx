@@ -12,6 +12,11 @@ export default function SelectRolePage() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  useEffect(() => {
+    if (!tempId) {
+      navigate("/login");
+    }
+  }, [tempId]);
 
   const setRole = async (role) => {
     if (!tempId) return alert("Invalid or missing user ID");

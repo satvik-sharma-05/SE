@@ -50,16 +50,19 @@ router.post("/register", async (req, res) => {
       name,
       email,
       password,
-      role: role || "pending",
+      role, // student | organizer ONLY
     });
+
+    let redirect = "/";
+    if (user.role === "student") redirect = "/profile";
+    if (user.role === "organizer") redirect = "/organizer";
+
 
     const token = jwt.sign(
       { id: user._id },
       config.JWT_SECRET,
       { expiresIn: "7d" }
     );
-
-    let redirect = "/select-role";
 
     res.cookie("token", token, {
       httpOnly: true,

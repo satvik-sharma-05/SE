@@ -20,7 +20,14 @@ export const registerUser = async (req, res) => {
     if (existingUser)
       return res.status(400).json({ message: "User already exists" });
 
-    const user = await User.create({ name, email, password, role: finalRole });
+    const user = await User.create({
+      name,
+      email,
+      password,
+      role: finalRole || "pending",
+    });
+
+    let redirect = "/select-role";
 
     const token = generateToken(user._id);
     res.cookie("token", token, {
