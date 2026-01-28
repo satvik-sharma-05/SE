@@ -41,21 +41,27 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const login = async (email, password) => {
-    try {
-      const res = await api.post("/auth/login", { email, password });
-      const { token, user: userData } = res.data;
+ const login = async (email, password, role) => {
+  try {
+    const res = await api.post("/auth/login", {
+      email,
+      password,
+      role, // 🔥 REQUIRED
+    });
 
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(userData));
-      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    const { token, user: userData } = res.data;
 
-      setUser(userData);
-      return res.data;
-    } catch (err) {
-      throw err.response?.data || err;
-    }
-  };
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(userData));
+    api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+    setUser(userData);
+    return res.data;
+  } catch (err) {
+    throw err.response?.data || err;
+  }
+};
+
 
   const register = async (userData) => {
     try {
