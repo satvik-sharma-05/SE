@@ -1,94 +1,91 @@
+# C:\dev\hacktrack_project\server\app.py
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import time
+import os
 
 app = Flask(__name__)
-CORS(app, origins=["https://satvik-kjyai.ondigitalocean.app/", "http://127.0.0.1:5173"])
 
-# Sample hackathon data
+# ============================
+# CORS
+# ============================
+CORS(
+    app,
+    resources={
+        r"/api/*": {
+            "origins": [
+                "http://localhost:5173",
+                "http://127.0.0.1:5173",
+                "https://hacktrack1-mu.vercel.app",
+            ]
+        }
+    },
+    supports_credentials=True,
+)
+
+# ============================
+# SAMPLE DATA
+# ============================
 sample_hackathons = [
     {
-        "id": 1, "title": "Global AI Hackathon 2024",
-        "url": "https://devpost.com/software/ai-project",
-        "description": "Build innovative AI solutions for real-world problems",
-        "prize_amount": 25000, "location": "Online", "date": "December 1-15, 2024",
-        "registration_count": 1500, "is_online": True, "organization": "Tech Corp",
-        "source": "devpost", "image_url": "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=400",
-        "deadline": "2024-12-15", "status": "upcoming"
+        "id": 1,
+        "title": "Global AI Hackathon 2024",
+        "source": "devpost",
+        "is_online": True,
+        "status": "upcoming",
+        "prize_amount": 25000,
     },
     {
-        "id": 2, "title": "Climate Change Challenge",
-        "url": "https://devpost.com/software/climate-solution",
-        "description": "Develop solutions to combat climate change using technology",
-        "prize_amount": 15000, "location": "San Francisco, CA", "date": "November 20-30, 2024",
-        "registration_count": 800, "is_online": False, "organization": "Green Foundation",
-        "source": "devpost", "image_url": "https://images.unsplash.com/photo-1569163139394-de44cb54d0c8?w=400",
-        "deadline": "2024-11-30", "status": "open"
+        "id": 2,
+        "title": "Climate Change Challenge",
+        "source": "devpost",
+        "is_online": False,
+        "status": "open",
+        "prize_amount": 15000,
     },
     {
-        "id": 3, "title": "HackerEarth AI Challenge 2024",
-        "url": "https://www.hackerearth.com/challenges/hackathon/ai-challenge",
-        "description": "Build cutting-edge AI and Machine Learning solutions",
-        "prize_amount": 10000, "location": "Online", "date": "November 15-30, 2024",
-        "registration_count": 2500, "is_online": True, "organization": "HackerEarth",
-        "source": "hackerearth", "image_url": "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400",
-        "deadline": "2024-11-30", "status": "upcoming"
-    }
+        "id": 3,
+        "title": "HackerEarth AI Challenge",
+        "source": "hackerearth",
+        "is_online": True,
+        "status": "upcoming",
+        "prize_amount": 10000,
+    },
 ]
 
-@app.route("/")
-def home():
-    return jsonify({"message": "Hackathon Scraper API is running!", "status": "healthy", "port": 5001})
+# ============================
+# ROUTES
+# ============================
+
+@app.route("/health", methods=["GET"])
+def health():
+    return jsonify({"status": "healthy"})
 
 @app.route("/api/hackathons", methods=["GET"])
-def get_hackathons():
+def hackathons():
     source = request.args.get("source")
     status = request.args.get("status")
-    online_only = request.args.get("online_only")
+    online = request.args.get("online_only")
 
-    filtered = sample_hackathons.copy()
+    data = list(sample_hackathons)
 
     if source:
-        filtered = [h for h in filtered if h.get("source") == source]
+        data = [h for h in data if h["source"] == source]
     if status:
-        filtered = [h for h in filtered if h.get("status") == status]
-    if online_only and online_only.lower() == "true":
-        filtered = [h for h in filtered if h.get("is_online")]
+        data = [h for h in data if h["status"] == status]
+    if online == "true":
+        data = [h for h in data if h["is_online"]]
 
     return jsonify({
-        "hackathons": filtered,
-        "total": len(filtered),
-        "last_updated": time.time(),
-        "sources": ["devpost", "hackerearth", "mlh", "eventbrite"]
+        "hackathons": data,
+        "total": len(data),
+        "updated": int(time.time())
     })
 
-@app.route("/api/statistics", methods=["GET"])
-def get_statistics():
-    return jsonify({
-        "total": len(sample_hackathons),
-        "by_source": {"devpost": 2, "hackerearth": 1},
-        "online_count": 2,
-        "total_prize": 50000,
-        "average_prize": 16666.67
-    })
-
-@app.route("/api/refresh", methods=["POST"])
-def refresh_data():
-    return jsonify({"message": "Data refreshed!", "count": len(sample_hackathons), "last_updated": time.time()})
-
-@app.after_request
-def after_request(response):
-    response.headers["Access-Control-Allow-Origin"] = "https://satvik-kjyai.ondigitalocean.app/"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
-    response.headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS"
-    response.headers["Access-Control-Allow-Credentials"] = "true"
-    return response
-
+# ============================
+# START
+# ============================
 if __name__ == "__main__":
-    print("="*60)
-    print("HACKATHON SCRAPER API STARTING...")
-    print("Port: 5001")
-    print("URL: http://localhost:5001")
-    print("API: http://localhost:5001/api/hackathons")
-    print("="*60)
-    app.run(host="0.0.0.0", port=5001, debug=False)
+    port = int(os.environ.get("PORT", 5000))
+    print(f"🚀 Server running on port {port}")
+    app.run(host="0.0.0.0", port=port)
