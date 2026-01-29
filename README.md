@@ -1,7 +1,13 @@
+Here is a fully revised README file with corrected Mermaid diagrams that will render properly on GitHub. The syntax errors (like unescaped quotes and math symbols) have been fixed.
+
 # 🌟 HackTrack – AI-Powered Hackathon Platform
 **Live Application:** [https://hacktrack1-mu.vercel.app/](https://hacktrack1-mu.vercel.app/)
 
-## 📋 **Table of Contents**
+**WELCOME TO HACKTRACK** - Discover & track the ultimate hackathon platform. Build, compete, and grow with developers worldwide.
+
+---
+
+## 📋 Table of Contents
 - [🌐 Live Deployment & Architecture](#-live-deployment--architecture)
 - [🔐 User Authentication Flow](#-user-authentication-flow)
 - [👤 Profile Creation & AI Embeddings](#-profile-creation--ai-embeddings)
@@ -15,9 +21,9 @@
 
 ---
 
-## 🌐 **Live Deployment & Architecture**
+## 🌐 Live Deployment & Architecture
 
-### **Global Service Distribution**
+### Global Service Distribution
 ```
 ┌─────────────────────────────────────────┐
 │        🌍 User's Browser/Device         │
@@ -56,7 +62,7 @@
 └───────────────────┘
 ```
 
-### **Infrastructure Details**
+### Infrastructure Details
 | **Component** | **Service Provider** | **Purpose** | **Key Feature** |
 |--------------|---------------------|-------------|-----------------|
 | **Frontend** | Vercel | User Interface | Automatic global CDN, instant rollbacks |
@@ -66,9 +72,9 @@
 
 ---
 
-## 🔐 **User Authentication Flow**
+## 🔐 User Authentication Flow
 
-### **What Happens When User Clicks "Sign In"**
+### What Happens When User Clicks "Sign In"
 
 ```mermaid
 sequenceDiagram
@@ -77,7 +83,7 @@ sequenceDiagram
     participant B as Backend (Render)
     participant DB as MongoDB Atlas
 
-    U->>F: 1. Enters credentials + clicks "Sign In"
+    U->>F: 1. Enters credentials + clicks Sign In
     F->>B: 2. POST /api/auth/login (HTTPS)
     B->>DB: 3. Query user by email
     DB-->>B: 4. Return user document + hashed password
@@ -87,10 +93,10 @@ sequenceDiagram
     F->>F: 8. Store token in localStorage
     F->>F: 9. Set axios default headers
     F-->>U: 10. Redirect to dashboard
-    Note over F,B: All subsequent requests include: Authorization: Bearer <token>
+    Note over F,B: All requests include: Authorization: Bearer <token>
 ```
 
-### **Security Implementation**
+### Security Implementation
 - **JWT Structure**: Contains `userId`, `role`, `iat` (issued at), `exp` (expiry)
 - **Storage**: HTTP-only cookies in production; localStorage in development
 - **Middleware**: Every protected route validates token before processing
@@ -99,23 +105,23 @@ sequenceDiagram
 
 ---
 
-## 👤 **Profile Creation & AI Embeddings**
+## 👤 Profile Creation & AI Embeddings
 
-### **Profile Update Flow**
+### Profile Update Flow
 
 ```mermaid
 flowchart TD
-    A[User edits profile<br/>and clicks Save] --> B[Frontend sends<br/>PUT /api/users/profile]
-    B --> C[Backend validates<br/>and structures data]
+    A[User edits profile and clicks Save] --> B[Frontend sends PUT /api/users/profile]
+    B --> C[Backend validates and structures data]
     C --> D{Profile text changed?}
     D -->|Yes| E[Call Embedding Service]
     D -->|No| F[Update basic info only]
     
     subgraph E[Embedding Generation]
         E1[Build concatenated text<br/>Bio + Skills + Interests + Roles] --> E2
-        E2[POST to HuggingFace Space<br/>with text payload] --> E3
-        E3[Sentence Transformer<br/>converts to 384-d vector] --> E4
-        E4[Return vector as<br/>float32 array]
+        E2[POST to HuggingFace Space with text payload] --> E3
+        E3[Sentence Transformer converts to 384-d vector] --> E4
+        E4[Return vector as float32 array]
     end
     
     E --> G[MongoDB Update]
@@ -123,22 +129,22 @@ flowchart TD
     
     subgraph G[Database Operation]
         G1[Update user document] --> G2
-        G2[Store embedding in<br/>profileEmbedding field] --> G3
-        G3[Update timestamp<br/>lastProfileUpdate]
+        G2[Store embedding in profileEmbedding field] --> G3
+        G3[Update timestamp lastProfileUpdate]
     end
     
-    G --> H[Return updated profile<br/>to frontend]
-    H --> I[Frontend displays<br/>success message]
+    G --> H[Return updated profile to frontend]
+    H --> I[Frontend displays success message]
 ```
 
-### **Embedding Service Details**
+### Embedding Service Details
 - **Model**: `all-MiniLM-L6-v2` (384 dimensions, optimized for speed/accuracy)
 - **Input Format**: Concatenated profile text (max 512 tokens)
 - **Output**: 384-dimensional float32 array (normalized to unit vector)
 - **Storage**: Saved as array field in MongoDB for direct cosine similarity
 - **Performance**: ~150ms latency including network round-trip
 
-### **Why This Architecture Wins**
+### Why This Architecture Wins
 | **Traditional Approach** | **HackTrack's Approach** | **Advantage** |
 |-------------------------|-------------------------|---------------|
 | Keyword matching on skills | Semantic understanding of entire profile | Matches "ML engineer" with "AI developer" |
@@ -148,10 +154,10 @@ flowchart TD
 
 ---
 
-## 🔍 **Semantic Teammate Search Engine**
+## 🔍 Semantic Teammate Search Engine
 
-### **Real-time Search Experience**
-**User Action**: Types _"Looking for a backend developer experienced with Node.js and AWS for a fintech hackathon"_
+### Real-time Search Experience
+**User Action**: Types "Looking for a backend developer experienced with Node.js and AWS for a fintech hackathon"
 
 ```mermaid
 flowchart LR
@@ -174,9 +180,8 @@ flowchart LR
     end
     
     subgraph D[Vector Similarity Search]
-        D1[Retrieve all users<br/>with embeddings] --> D2
-        D2[Compute cosine similarity<br/>for each user] --> D3
-        D3[cosine = A·B / \|A\|\|B\|]
+        D1[Retrieve all users with embeddings] --> D2
+        D2[Compute cosine similarity for each user]
     end
     
     subgraph E[Result Ranking]
@@ -191,7 +196,7 @@ flowchart LR
     end
 ```
 
-### **Cosine Similarity Calculation**
+### Cosine Similarity Calculation
 For each user in database:
 1. Retrieve pre-computed `user.profileEmbedding` (384-d vector)
 2. Compute dot product: `dot = sum(query[i] * user[i] for i in 0..383)`
@@ -199,7 +204,7 @@ For each user in database:
 4. Similarity = `dot / (|query| * |user|)`
 5. Results sorted by similarity descending (1.0 = perfect match, 0.0 = no relation)
 
-### **Performance Optimizations**
+### Performance Optimizations
 - **Indexing**: MongoDB index on `profileEmbedding` field
 - **Caching**: Query embeddings cached for 1 hour (common searches)
 - **Batch Processing**: Compute similarities in parallel
@@ -207,34 +212,34 @@ For each user in database:
 
 ---
 
-## 🧠 **AI Teammate Recommendation System**
+## 🧠 AI Teammate Recommendation System
 
-### **Intelligent Matching Beyond Search**
+### Intelligent Matching Beyond Search
 
 ```mermaid
 graph TD
-    A[User clicks<br/>"Recommended Teammates"] --> B[Backend retrieves<br/>current user embedding]
-    B --> C[Fetch candidate pool<br/>100 most relevant users]
+    A[User clicks Recommendations] --> B[Backend retrieves current user embedding]
+    B --> C[Fetch candidate pool 100 most relevant users]
     
     C --> D[Multi-factor Scoring Pipeline]
     
     subgraph D[Scoring Components]
-        D1[Semantic Similarity 40%<br/>cosine(embeddings)] --> D5
-        D2[Skill Complementarity 30%<br/>non-overlapping skills] --> D5
-        D3[Role Balance 20%<br/>fills team gaps] --> D5
-        D4[Domain Alignment 10%<br/>shared interests] --> D5
-        D5[Weighted Sum<br/>Total Score = 0.4×S + 0.3×C + 0.2×R + 0.1×D]
+        D1[Semantic Similarity 40% cosine(embeddings)] --> D5
+        D2[Skill Complementarity 30% non-overlapping skills] --> D5
+        D3[Role Balance 20% fills team gaps] --> D5
+        D4[Domain Alignment 10% shared interests] --> D5
+        D5[Weighted Sum Total Score = 0.4×S + 0.3×C + 0.2×R + 0.1×D]
     end
     
     D5 --> E[Diversity Enforcement]
-    E --> F[Remove users too similar<br/>to each other]
-    F --> G[Freshness Boost<br/>+0.1 for activity <24h]
-    G --> H[Final Ranking<br/>top 15 recommendations]
+    E --> F[Remove users too similar to each other]
+    F --> G[Freshness Boost +0.1 for activity <24h]
+    G --> H[Final Ranking top 15 recommendations]
     H --> I[Explainability Layer]
-    I --> J[Return with reasons<br/>e.g., "Strong skills match"]
+    I --> J[Return with reasons e.g., Strong skills match]
 ```
 
-### **Scoring System Deep Dive**
+### Scoring System Deep Dive
 
 #### **1. Semantic Similarity (40%)**
 - Uses pre-computed profile embeddings
@@ -264,7 +269,7 @@ graph TD
 - Compatible time commitments
 - Matching collaboration styles
 
-### **Cold Start Solution**
+### Cold Start Solution
 For new users with minimal profile data:
 1. Use skill-based matching initially
 2. Ask 3 quick questions during onboarding to generate initial embedding
@@ -273,11 +278,11 @@ For new users with minimal profile data:
 
 ---
 
-## 👥 **Automatic Team Formation**
+## 👥 Automatic Team Formation
 
-### **AI-Powered Team Building**
+### AI-Powered Team Building
 
-**User Action**: Organizer clicks _"Auto-generate balanced teams for hackathon"_
+**User Action**: Organizer clicks "Auto-generate balanced teams for hackathon"
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -293,53 +298,53 @@ For new users with minimal profile data:
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### **Formation Process**
+### Formation Process
 
 ```mermaid
 flowchart TD
-    A[Start with 32 participants] --> B[Create similarity matrix<br/>32×32 pairwise scores]
-    B --> C[Identify role distribution<br/>Frontend:10, Backend:12, Design:6, ML:4]
+    A[Start with 32 participants] --> B[Create similarity matrix 32×32 pairwise scores]
+    B --> C[Identify role distribution Frontend:10, Backend:12, Design:6, ML:4]
     C --> D[Initialize 8 empty teams]
     
     D --> E{Formation Strategy}
-    E -->|Role-First| F[Assign 1 Design + 1 ML<br/>to each team first]
-    E -->|Skill-Balance| G[Pair high-skill + learners<br/>in each domain]
+    E -->|Role-First| F[Assign 1 Design + 1 ML to each team first]
+    E -->|Skill-Balance| G[Pair high-skill + learners in each domain]
     
-    F --> H[Fill remaining slots<br/>with role balance in mind]
+    F --> H[Fill remaining slots with role balance in mind]
     G --> H
     
-    H --> I[Optimize intra-team similarity<br/>while maintaining diversity]
-    I --> J[Validate constraints<br/>no excluded pairings]
-    J --> K[Adjust for timezone clusters<br/>max 3h difference preferred]
-    K --> L[Final team assignment<br/>8 balanced teams]
-    L --> M[Generate team summaries<br/>with strengths/weaknesses]
-    M --> N[Notify all participants<br/>via email + in-app]
+    H --> I[Optimize intra-team similarity while maintaining diversity]
+    I --> J[Validate constraints no excluded pairings]
+    J --> K[Adjust for timezone clusters max 3h difference preferred]
+    K --> L[Final team assignment 8 balanced teams]
+    L --> M[Generate team summaries with strengths/weaknesses]
+    M --> N[Notify all participants via email + in-app]
 ```
 
-### **Optimization Metrics**
+### Optimization Metrics
 - **Intra-team Cohesion**: Average similarity score within team (target: 0.6-0.8)
 - **Role Coverage**: Each team has at least 3 different roles
 - **Skill Distribution**: Total skill points balanced across teams (±15%)
 - **Time Compatibility**: Members share ≥4 overlapping working hours
 - **Social Graph**: Minimize pre-existing relationships (encourage new connections)
 
-### **Result Quality**
+### Result Quality
 - **Before**: Random assignment or self-selection → imbalanced teams, dropout risks
 - **After**: Algorithmically balanced → 40% higher completion rate, 25% more prize wins
 
 ---
 
-## 📅 **Multi-Source Event Aggregation**
+## 📅 Multi-Source Event Aggregation
 
-### **Real-time Hackathon Discovery**
+### Real-time Hackathon Discovery
 
 ```mermaid
 timeline
     title Event Aggregation Schedule
     section Every 6 Hours (Scheduled)
         Scraper Orchestration : 4 parallel scrapers
-        Data Extraction       : Devpost, MLH,<br/>Clist.by, User-submitted
-        Deduplication         : Fuzzy matching<br/>+ manual rules
+        Data Extraction       : Devpost, MLH, Clist.by, User-submitted
+        Deduplication         : Fuzzy matching + manual rules
         Database Update       : Bulk upsert operation
         Cache Refresh         : Update Redis cache
     section On User Request
@@ -349,7 +354,7 @@ timeline
         Personalize           : Filter by user interests
 ```
 
-### **Scraper Architecture**
+### Scraper Architecture
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    Scraper Service Isolation                 │
@@ -376,14 +381,14 @@ timeline
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### **Data Flow Optimization**
+### Data Flow Optimization
 1. **Parallel Execution**: All scrapers run simultaneously
 2. **Incremental Updates**: Only fetch changed events (ETag/Last-Modified)
 3. **Bulk Database Operations**: Single transaction for all updates
 4. **Cache Warming**: Pre-load popular searches into Redis
 5. **Failure Isolation**: One scraper fails → others continue
 
-### **Event Deduplication Logic**
+### Event Deduplication Logic
 - **Exact match**: Same URL or same title + date + organizer
 - **Fuzzy match**: Similar title (±2 words) + overlapping dates
 - **Merge strategy**: Keep most complete data, combine participant counts
@@ -391,36 +396,36 @@ timeline
 
 ---
 
-## 📌 **Bookmarks & Participation System**
+## 📌 Bookmarks & Participation System
 
-### **User Engagement Tracking**
+### User Engagement Tracking
 
 ```mermaid
 flowchart LR
-    A[User sees interesting hackathon] --> B{Clicks "Bookmark" icon}
+    A[User sees interesting hackathon] --> B{Clicks Bookmark icon}
     B -->|Bookmark| C[Frontend: POST /api/events/bookmark]
     B -->|Participate| D[Frontend: POST /api/events/participate]
     
     C --> E[Backend adds to bookmarks array]
     D --> F[Backend adds to participating array]
     
-    E --> G[Database Update<br/>user.bookmarks.push(eventId)]
-    F --> H[Database Update<br/>user.participating.push(eventId)]
+    E --> G[Database Update user.bookmarks.push(eventId)]
+    F --> H[Database Update user.participating.push(eventId)]
     
-    G --> I[Real-time update<br/>frontend state]
+    G --> I[Real-time update frontend state]
     H --> I
     
-    I --> J[UI reflects new state<br/>with visual feedback]
+    I --> J[UI reflects new state with visual feedback]
     
     subgraph K[Background Processing]
         I --> L[Check team formation readiness]
-        L --> M[If participating > 2<br/>trigger team suggestions]
+        L --> M[If participating > 2 trigger team suggestions]
         I --> N[Update recommendation weights]
-        N --> O[Boost similar events<br/>in discovery feed]
+        N --> O[Boost similar events in discovery feed]
     end
 ```
 
-### **Data Relationships**
+### Data Relationships
 ```
 User Document:
 {
@@ -440,7 +445,7 @@ Event Document:
 }
 ```
 
-### **Analytics & Personalization**
+### Analytics & Personalization
 - **Bookmark analysis**: Identify interest patterns for better recommendations
 - **Participation rate**: Track conversion (view → bookmark → participate)
 - **Team formation trigger**: When user joins hackathon, suggest finding teammates
@@ -449,9 +454,9 @@ Event Document:
 
 ---
 
-## ❤️ **System Health & Monitoring**
+## ❤️ System Health & Monitoring
 
-### **Comprehensive Health Checking**
+### Comprehensive Health Checking
 
 **Frontend Monitoring**: Every 60 seconds, calls `GET /api/health`
 
@@ -472,11 +477,11 @@ graph TD
     G --> I
     H --> I
     
-    I -->|Yes| J[Return 200 OK<br/>with component statuses]
-    I -->|No| K[Return 503 Degraded<br/>with failing components]
+    I -->|Yes| J[Return 200 OK with component statuses]
+    I -->|No| K[Return 503 Degraded with failing components]
     
-    J --> L[Frontend displays<br/>normal status]
-    K --> M[Frontend shows<br/>degraded mode warning]
+    J --> L[Frontend displays normal status]
+    K --> M[Frontend shows degraded mode warning]
     
     subgraph N[Background Alerts]
         K --> O[Log error with severity]
@@ -486,7 +491,7 @@ graph TD
     end
 ```
 
-### **Health Check Components**
+### Health Check Components
 1. **Database Connectivity**: Ping MongoDB, verify read/write permissions
 2. **Embedding Service**: Test request to HuggingFace Space (timeout: 5s)
 3. **Scraper Status**: Verify last successful run <24 hours ago
@@ -495,7 +500,7 @@ graph TD
 6. **Active Users**: Track concurrent users for scaling decisions
 7. **Error Rate**: Alert if >1% error rate on any endpoint
 
-### **Dashboard Metrics**
+### Dashboard Metrics
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    Real-time System Dashboard               │
@@ -511,7 +516,7 @@ graph TD
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### **Graceful Degradation**
+### Graceful Degradation
 - **Embedding service down**: Fall back to keyword-based search
 - **Database slow**: Return cached results with "data may be stale" warning
 - **Scraper failure**: Show events from working sources only
@@ -520,9 +525,9 @@ graph TD
 
 ---
 
-## 🏆 **Production Architecture Analysis**
+## 🏆 Production Architecture Analysis
 
-### **Why This Architecture Scales**
+### Why This Architecture Scales
 
 | **Architectural Decision** | **Benefit** | **Scaling Impact** |
 |---------------------------|-------------|-------------------|
@@ -533,21 +538,21 @@ graph TD
 | **Cache-First Design** | Reduced database load | 70% of requests served from cache |
 | **Bulk Database Operations** | Efficient data handling | 1000 events updated in 1 transaction |
 
-### **Cost Optimization**
+### Cost Optimization
 - **Vercel**: Free tier for frontend, scales with traffic
 - **Render**: $7-25/month backend, scales based on usage
 - **MongoDB Atlas**: $0-57/month depending on data size
 - **Hugging Face**: Free GPU hours, upgrade as needed
 - **Total**: ~$15-100/month for full production platform
 
-### **Performance Benchmarks**
+### Performance Benchmarks
 - **Page Load Time**: <2.5s initial load, <200ms subsequent interactions
 - **Search Response**: <300ms for 10,000 users
 - **Recommendation Generation**: <500ms for personalized results
 - **Event Loading**: <100ms from cache, <800ms fresh scrape
 - **Concurrent Users**: Tested to 1,000+ with linear scaling
 
-### **Comparison with Alternatives**
+### Comparison with Alternatives
 ```
 ┌──────────────────┬──────────────────────┬─────────────────────┐
 │   Platform       │  Traditional         │  HackTrack          │
@@ -565,21 +570,21 @@ graph TD
 
 ---
 
-## 🚀 **Future Enhancement Pipeline**
+## 🚀 Future Enhancement Pipeline
 
-### **Short-term (Next 3 Months)**
+### Short-term (Next 3 Months)
 1. **Real-time Chat Integration**: Socket.io for team communication
 2. **Project Submission Portal**: Integrated hackathon submission system
 3. **Advanced Analytics**: Team success prediction models
 4. **Mobile Application**: React Native companion app
 
-### **Medium-term (6-12 Months)**
+### Medium-term (6-12 Months)
 1. **Vector Database Migration**: Pinecone/Weaviate for billion-scale search
 2. **GPU Acceleration**: Dedicated GPU instance for embeddings
 3. **Internationalization**: Multi-language support
 4. **Enterprise Features**: Organization/University portals
 
-### **Long-term Vision**
+### Long-term Vision
 1. **AI Coach**: Personalized hackathon preparation guidance
 2. **Success Network**: Connect past winners with new participants
 3. **Blockchain Verification**: Immutable hackathon achievement records
@@ -587,15 +592,15 @@ graph TD
 
 ---
 
-## 📊 **Success Metrics & Impact**
+## 📊 Success Metrics & Impact
 
-### **Quantitative Impact**
+### Quantitative Impact
 - **User Engagement**: 40% increase in team formation rate
 - **Hackathon Completion**: 35% higher completion rate for algorithmically-formed teams
 - **Prize Wins**: 25% more prize-winning teams from HackTrack matches
 - **User Retention**: 60% of users return for multiple hackathons
 
-### **Qualitative Impact**
+### Qualitative Impact
 - **Reduced Anxiety**: Newcomers feel more confident joining teams
 - **Skill Development**: Balanced teams provide better learning opportunities
 - **Diversity**: Algorithm reduces unconscious bias in team formation
@@ -603,14 +608,13 @@ graph TD
 
 ---
 
-## 🎯 **One-Sentence Summary for Interviews**
+## 🎯 One-Sentence Summary for Interviews
 
 > "HackTrack is a production-grade, AI-powered hackathon platform that uses semantic embeddings to intelligently match developers, automatically form balanced teams, and aggregate events from multiple sources with a fault-tolerant microservice architecture deployed across Vercel, Render, Hugging Face, and MongoDB Atlas."
 
 ---
 
 **🌟 Live Platform**: [https://hacktrack1-mu.vercel.app/](https://hacktrack1-mu.vercel.app/)  
-**📧 Contact**: sharmasatvik031@gmail.com 
-**🔄 Status**: Production with 99.7% uptime over 90 days  
+**📧 Contact**: sharmasatvik031@gmail.com   
 
 *Built with modern cloud architecture, intelligent AI matching, and a focus on creating winning hackathon experiences.*
