@@ -31,18 +31,18 @@ export default function Hero() {
         </p>
         
         <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-          <a
-            href="/events"
+          <Link 
+            to="/events"
             className="px-10 py-5 bg-gradient-to-r from-cyan-500 to-blue-500 text-black font-black text-lg rounded-xl hover:from-cyan-400 hover:to-blue-400 transition-all transform hover:scale-110 hover:shadow-2xl hover:shadow-cyan-500/50 border-2 border-cyan-300 uppercase tracking-wider"
           >
             Explore Hackathons →
-          </a>
-          <a
-            href="/find-teammates"
+          </Link>
+          <Link
+            to="/find-teammates"
             className="px-10 py-5 bg-transparent text-cyan-300 font-bold text-lg rounded-xl border-2 border-cyan-400 hover:bg-cyan-400/10 transition-all transform hover:scale-105 hover:shadow-lg hover:shadow-cyan-400/30 uppercase tracking-wider"
           >
             Find Teammates
-          </a>
+          </Link>
         </div>
       </div>
       

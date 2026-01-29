@@ -1,9 +1,14 @@
 // src/services/api.js
 import axios from "axios";
 
-const API_BASE =
-  import.meta.env.VITE_API_BASE_URL ||
-  "http://localhost:5000/api";
+const API_BASE = import.meta.env.DEV
+  ? "http://localhost:5000/api"
+  : __API_BASE__;
+
+if (!API_BASE) {
+  throw new Error("❌ API_BASE is undefined. Check VITE_API_BASE_URL at build time.");
+}
+
 
 const api = axios.create({
   baseURL: API_BASE,
