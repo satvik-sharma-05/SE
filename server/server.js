@@ -48,6 +48,8 @@ const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
   "https://hacktrack1-mu.vercel.app",
+  "https://hacktrack-frontend.vercel.app",
+  "https://hacktrack-client.vercel.app",
 ];
 
 app.use(
