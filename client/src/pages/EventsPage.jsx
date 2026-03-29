@@ -30,7 +30,7 @@ export default function EventsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [statistics, setStatistics] = useState(null);
-  
+
   // Video background state
   const [isVideoPlaying, setIsVideoPlaying] = useState(true);
   const [videoLoaded, setVideoLoaded] = useState(false);
@@ -46,7 +46,8 @@ export default function EventsPage() {
     status: "all",
     location: "all",
     type: "all",
-    source: "all"
+    source: "all",
+    eventStatus: "all" // NEW: for ongoing/upcoming/finished
   });
 
   const [sortBy, setSortBy] = useState("start");
@@ -204,6 +205,24 @@ export default function EventsPage() {
         return false;
       }
 
+      // Event Status filter (NEW)
+      if (filters.eventStatus !== "all") {
+        const startDate = event.start ? new Date(event.start) : null;
+        const endDate = event.end ? new Date(event.end) : null;
+
+        if (filters.eventStatus === "upcoming" && (!startDate || startDate <= now)) {
+          return false;
+        }
+        if (filters.eventStatus === "ongoing" && (
+          !startDate || startDate > now || (endDate && endDate < now)
+        )) {
+          return false;
+        }
+        if (filters.eventStatus === "finished" && (!endDate || endDate >= now)) {
+          return false;
+        }
+      }
+
       // Timeframe filter
       if (filters.timeframe === "upcoming" && (!event.start || new Date(event.start) <= now)) {
         return false;
@@ -273,7 +292,8 @@ export default function EventsPage() {
       status: "all",
       location: "all",
       type: "all",
-      source: "all"
+      source: "all",
+      eventStatus: "all"
     });
     setSortBy("start");
     setCurrentPage(1);
@@ -284,7 +304,7 @@ export default function EventsPage() {
   };
 
   const totalPages = Math.ceil(totalEvents / itemsPerPage);
-  
+
   const goToPage = (page) => {
     const targetPage = Math.max(1, Math.min(page, totalPages));
     if (targetPage !== currentPage) {
@@ -293,7 +313,7 @@ export default function EventsPage() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
-  
+
   const nextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
@@ -301,7 +321,7 @@ export default function EventsPage() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
-  
+
   const prevPage = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
@@ -334,26 +354,51 @@ export default function EventsPage() {
   if (loading && events.length === 0) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center relative overflow-hidden">
-        {/* Video Background */}
+        {/* Animated Background */}
         <div className="absolute inset-0 z-0">
-          <video
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="w-full h-full object-cover opacity-20"
-            onLoadedData={() => setVideoLoaded(true)}
-          >
-            <source src="/videos/cyber-grid.mp4" type="video/mp4" />
-            <source src="/videos/cyber-grid.webm" type="video/webm" />
-          </video>
-          <div className="absolute inset-0 bg-gradient-to-br from-cyan-900/20 to-purple-900/20"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-cyan-900/20 via-black to-purple-900/20"></div>
+          <div
+            className="absolute inset-0 opacity-20"
+            style={{
+              backgroundImage: `
+                linear-gradient(to right, rgba(0, 255, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 255, 255, 0.1) 1px, transparent 1px)
+              `,
+              backgroundSize: '50px 50px',
+              animation: 'pulse 2s ease-in-out infinite'
+            }}
+          />
         </div>
 
-        <div className="text-center relative z-10">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-cyan-400 mx-auto mb-4"></div>
-          <p className="text-cyan-400 font-mono uppercase tracking-widest">SCANNING DATA STREAMS...</p>
-          <p className="text-orange-300 text-sm mt-2 uppercase tracking-wide">DEVPOST • CLIST • DATABASE</p>
+        <div className="text-center relative z-10 max-w-md">
+          {/* Spinning Loader */}
+          <div className="relative mb-8">
+            <div className="animate-spin rounded-full h-24 w-24 border-t-4 border-b-4 border-cyan-400 mx-auto"></div>
+            <div className="absolute inset-0 animate-ping rounded-full h-24 w-24 border-4 border-cyan-400 opacity-20 mx-auto"></div>
+          </div>
+
+          {/* Loading Text */}
+          <h2 className="text-3xl font-black text-cyan-400 mb-4 uppercase tracking-widest animate-pulse">
+            SCANNING DATA STREAMS
+          </h2>
+
+          {/* Source Labels */}
+          <div className="flex justify-center gap-3 mb-6">
+            <div className="px-4 py-2 bg-cyan-400/10 border border-cyan-400/30 rounded-lg">
+              <span className="text-cyan-300 text-sm font-mono uppercase tracking-wide">DEVPOST</span>
+            </div>
+            <div className="px-4 py-2 bg-orange-400/10 border border-orange-400/30 rounded-lg">
+              <span className="text-orange-300 text-sm font-mono uppercase tracking-wide">CLIST</span>
+            </div>
+            <div className="px-4 py-2 bg-purple-400/10 border border-purple-400/30 rounded-lg">
+              <span className="text-purple-300 text-sm font-mono uppercase tracking-wide">MLH</span>
+            </div>
+          </div>
+
+          {/* Status Message */}
+          <p className="text-cyan-300/80 text-sm uppercase tracking-wide font-mono">
+            Aggregating hackathons from multiple platforms...
+          </p>
         </div>
       </div>
     );
@@ -539,13 +584,14 @@ export default function EventsPage() {
           </div>
 
           {showFilters && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 p-6 bg-black/40 rounded-xl border border-cyan-500/20">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-4 p-6 bg-black/40 rounded-xl border border-cyan-500/20">
               {[
                 { name: "platform", icon: <FaNetworkWired />, label: "PLATFORM", options: platforms },
                 { name: "source", icon: <FiDatabase />, label: "SOURCE", options: sources },
+                { name: "eventStatus", icon: <FiZap />, label: "STATUS", options: ["upcoming", "ongoing", "finished"] },
                 { name: "timeframe", icon: <FiCalendar />, label: "TIME", options: ["upcoming", "ongoing", "past"] },
                 { name: "location", icon: <FiMapPin />, label: "LOC", options: ["online", "offline"] },
-                { name: "status", icon: <FiZap />, label: "STATUS", options: ["featured"] },
+                { name: "status", icon: <FiZap />, label: "FEATURED", options: ["featured"] },
                 { name: "type", icon: <FiGlobe />, label: "TYPE", options: ["hackathon", "competition", "conference"] }
               ].map(({ name, icon, label, options }) => (
                 <div key={name}>
@@ -613,7 +659,7 @@ export default function EventsPage() {
                   CLEAR FILTERS
                 </button>
               )}
-             
+
             </div>
           </div>
         ) : (
@@ -627,7 +673,7 @@ export default function EventsPage() {
                 </div>
               </div>
             )}
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 relative">
               {filteredEvents.map(event => (
                 <EventCard
@@ -639,16 +685,16 @@ export default function EventsPage() {
 
             {totalPages > 1 && (
               <div className="flex justify-center items-center space-x-2 mb-8">
-                <button 
-                  onClick={() => goToPage(1)} 
-                  disabled={currentPage === 1} 
+                <button
+                  onClick={() => goToPage(1)}
+                  disabled={currentPage === 1}
                   className="p-2 border border-cyan-500/30 rounded-lg hover:bg-cyan-400/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                 >
                   <FiChevronsLeft className="text-cyan-400" />
                 </button>
-                <button 
-                  onClick={prevPage} 
-                  disabled={currentPage === 1} 
+                <button
+                  onClick={prevPage}
+                  disabled={currentPage === 1}
                   className="p-2 border border-cyan-500/30 rounded-lg hover:bg-cyan-400/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                 >
                   <FiChevronLeft className="text-cyan-400" />
@@ -658,23 +704,23 @@ export default function EventsPage() {
                     key={p}
                     onClick={() => goToPage(p)}
                     className={`px-4 py-2 border rounded-lg font-mono text-sm uppercase tracking-widest transition-all ${currentPage === p
-                        ? 'bg-cyan-400 border-cyan-400 text-black font-black'
-                        : 'border-cyan-500/30 text-cyan-400 hover:bg-cyan-400/10 hover:border-cyan-400'
+                      ? 'bg-cyan-400 border-cyan-400 text-black font-black'
+                      : 'border-cyan-500/30 text-cyan-400 hover:bg-cyan-400/10 hover:border-cyan-400'
                       }`}
                   >
                     {p}
                   </button>
                 ))}
-                <button 
-                  onClick={nextPage} 
-                  disabled={currentPage === totalPages} 
+                <button
+                  onClick={nextPage}
+                  disabled={currentPage === totalPages}
                   className="p-2 border border-cyan-500/30 rounded-lg hover:bg-cyan-400/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                 >
                   <FiChevronRight className="text-cyan-400" />
                 </button>
-                <button 
-                  onClick={() => goToPage(totalPages)} 
-                  disabled={currentPage === totalPages} 
+                <button
+                  onClick={() => goToPage(totalPages)}
+                  disabled={currentPage === totalPages}
                   className="p-2 border border-cyan-500/30 rounded-lg hover:bg-cyan-400/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                 >
                   <FiChevronsRight className="text-cyan-400" />

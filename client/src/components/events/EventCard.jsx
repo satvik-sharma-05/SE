@@ -14,6 +14,25 @@ export default function EventCard({ event = {}, onBookmarkToggled }) {
   const platform = event?.platform || event?.source || null;
   const bookmarkId = mongoId || (platform && externalId ? `${platform}:${externalId}` : null);
 
+  // Calculate event status
+  const getEventStatus = () => {
+    if (!event.start) return { label: 'TBD', color: 'gray', bgColor: 'bg-gray-600/90' };
+
+    const now = new Date();
+    const startDate = new Date(event.start);
+    const endDate = event.end ? new Date(event.end) : null;
+
+    if (startDate > now) {
+      return { label: 'UPCOMING', color: 'blue', bgColor: 'bg-blue-600/90' };
+    } else if (endDate && endDate < now) {
+      return { label: 'FINISHED', color: 'red', bgColor: 'bg-red-600/90' };
+    } else {
+      return { label: 'ONGOING', color: 'green', bgColor: 'bg-green-600/90 animate-pulse' };
+    }
+  };
+
+  const eventStatus = getEventStatus();
+
   async function handleBookmark(e) {
     e.preventDefault();
     if (!bookmarkId) {
@@ -38,26 +57,26 @@ export default function EventCard({ event = {}, onBookmarkToggled }) {
   const getImageUrl = () => {
     // If image already failed, use fallback
     if (imageError) return '/bg2.jpg';
-    
+
     // Check if we have a valid banner image
     const bannerImage = event.bannerImage || event.thumbnailUrl || event.cover;
-    
-    if (bannerImage && 
-        bannerImage !== "" && 
-        !bannerImage.includes('placeholder') &&
-        !bannerImage.includes('defaults')) {
-      
+
+    if (bannerImage &&
+      bannerImage !== "" &&
+      !bannerImage.includes('placeholder') &&
+      !bannerImage.includes('defaults')) {
+
       // Handle relative URLs from Devpost (starts with //)
       if (bannerImage.startsWith('//')) {
         return `https:${bannerImage}`;
       }
-      
+
       // Handle full URLs
       if (bannerImage.startsWith('http')) {
         return bannerImage;
       }
     }
-    
+
     // No valid image found, use fallback
     return '/bg2.jpg';
   };
@@ -80,8 +99,8 @@ export default function EventCard({ event = {}, onBookmarkToggled }) {
   const formatDate = (dateString) => {
     if (!dateString) return "TBD";
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
       day: 'numeric',
       year: 'numeric'
     });
@@ -110,30 +129,34 @@ export default function EventCard({ event = {}, onBookmarkToggled }) {
             onError={handleImageError}
           />
         ) : (
-            <img
+          <img
             src="/bg2.jpg"
             alt={event.title || "Event image"}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
             onError={handleImageError}
           />
         )}
-        
+
         {/* ────── Platform Badge ────── */}
         <div className="absolute top-3 left-3 bg-black/80 backdrop-blur-sm text-cyan-300 px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wide border border-cyan-400/50">
           {platform || sourceLabel}
         </div>
-        
+
+        {/* ────── Status Badge ────── */}
+        <div className={`absolute top-3 right-3 ${eventStatus.bgColor} text-white px-3 py-1 rounded-lg text-xs font-black uppercase tracking-wide border border-white/20 shadow-lg`}>
+          {eventStatus.label}
+        </div>
+
         {/* ────── Featured Badge ────── */}
         {event.isFeatured && (
-          <div className="absolute top-3 right-3 bg-gradient-to-r from-yellow-500 to-orange-600 text-black px-3 py-1 rounded-lg text-xs font-black uppercase tracking-wide border border-yellow-400">
+          <div className="absolute top-12 right-3 bg-gradient-to-r from-yellow-500 to-orange-600 text-black px-3 py-1 rounded-lg text-xs font-black uppercase tracking-wide border border-yellow-400">
             ⭐ FEATURED
           </div>
         )}
-        
+
         {/* ────── Online/Offline Badge ────── */}
-        <div className={`absolute bottom-3 right-3 ${
-          event.isOnline ? 'bg-green-600/90' : 'bg-blue-600/90'
-        } text-white px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wide border border-white/20`}>
+        <div className={`absolute bottom-3 right-3 ${event.isOnline ? 'bg-green-600/90' : 'bg-blue-600/90'
+          } text-white px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wide border border-white/20`}>
           {event.isOnline ? '🌐 ONLINE' : '📍 IN-PERSON'}
         </div>
       </div>
