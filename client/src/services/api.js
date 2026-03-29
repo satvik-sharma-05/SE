@@ -4,7 +4,7 @@ import axios from "axios";
 const API_BASE = import.meta.env.VITE_API_BASE_URL ||
   (import.meta.env.DEV
     ? "http://localhost:5000/api"
-    : "https://hacktrack1-mu.vercel.app/api");
+    : "https://hacktrack-server-674s.onrender.com/api");
 
 if (!API_BASE) {
   throw new Error("❌ API_BASE is undefined. Check VITE_API_BASE_URL at build time.");

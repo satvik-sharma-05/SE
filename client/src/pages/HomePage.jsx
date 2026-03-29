@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { ArrowRight, Users, Zap, Sparkles, TrendingUp, Award } from "lucide-react";
 import Hero from "../components/layout/Hero";
 import EventCard from "../components/events/EventCard";
-import { getRecommendedTeammates } from "../services/api";
+import { getRecommendedTeammates, fetchLiveEvents } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router-dom";
 import SendInvitationModal from "../components/invitaions/SendInvitationModal";
@@ -16,12 +16,12 @@ export default function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_BASE_URL}/events/live`)
-      .then(res => res.json())
+    fetchLiveEvents()
       .then(data => {
-        const list = Array.isArray(data) ? data : data.events || [];
+        const list = data.events || [];
         setEvents(list.slice(0, 6));
-      });
+      })
+      .catch(err => console.error("Failed to fetch events:", err));
   }, []);
 
   useEffect(() => {
