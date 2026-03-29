@@ -1,12 +1,17 @@
 // src/services/api.js
 import axios from "axios";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ||
+// Get base URL from env or use fallback
+let API_BASE = import.meta.env.VITE_API_BASE_URL ||
   (import.meta.env.DEV
     ? "http://localhost:5000/api"
     : "https://hacktrack-server-674s.onrender.com/api");
 
-// Remove the strict check since we have a good fallback
+// Ensure /api suffix is present
+if (API_BASE && !API_BASE.endsWith('/api')) {
+  API_BASE = API_BASE + '/api';
+}
+
 console.log("🔥 API BASE URL:", API_BASE);
 
 
