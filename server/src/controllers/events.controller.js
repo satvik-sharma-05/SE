@@ -30,38 +30,35 @@ export async function getLive(req, res) {
   try {
     console.log("🌐 Fetching from cache-based sources...");
 
-    // Concurrent fetch from all sources — cached
-    const [clistPromise, devpostPromise, mlhPromise, organizerPromise] = [
-      fetchClist().catch(err => {
-        console.error("❌ CLIST fetch failed:", err.message);
+    // Helper to add timeout to promises
+    const withTimeout = (promise, timeoutMs, source) => {
+      return Promise.race([
+        promise,
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error(`${source} timeout after ${timeoutMs}ms`)), timeoutMs)
+        )
+      ]).catch(err => {
+        console.error(`❌ ${source} fetch failed:`, err.message);
         return [];
-      }),
-      fetchDevpostEvents().catch(err => {
-        console.error("❌ Devpost fetch failed:", err.message);
-        return [];
-      }),
-      fetchMLHEvents().catch(err => {
-        console.error("❌ MLH fetch failed:", err.message);
-        return [];
-      }),
-      Event.find({
-        source: "organizer",
-        isApproved: true,
-        $or: [{ end: { $gte: new Date() } }, { end: { $exists: false } }],
-      })
-        .sort({ start: 1 })
-        .lean()
-        .catch(err => {
-          console.error("❌ Organizer DB fetch failed:", err.message);
-          return [];
-        }),
-    ];
+      });
+    };
 
+    // Concurrent fetch from all sources with 8s timeout each
     const [clistEvents, devpostEvents, mlhEvents, organizerEvents] = await Promise.all([
-      clistPromise,
-      devpostPromise,
-      mlhPromise,
-      organizerPromise,
+      withTimeout(fetchClist(), 8000, "CLIST"),
+      withTimeout(fetchDevpostEvents(), 8000, "Devpost"),
+      withTimeout(fetchMLHEvents(), 8000, "MLH"),
+      withTimeout(
+        Event.find({
+          source: "organizer",
+          isApproved: true,
+          $or: [{ end: { $gte: new Date() } }, { end: { $exists: false } }],
+        })
+          .sort({ start: 1 })
+          .lean(),
+        5000,
+        "Organizer DB"
+      ),
     ]);
 
     console.log(
