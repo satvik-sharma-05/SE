@@ -10,7 +10,7 @@
 [![Node.js](https://img.shields.io/badge/Node.js-18+-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org)
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com)
-[![Python](https://img.shields.io/badge/Python-3.14.3-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org)
+[![Python](https://img.shields.io/badge/Python-3.12+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org)
 
 **[🌐 Live Demo](https://hacktrack1-mu.vercel.app)** • **[📖 Documentation](DEPLOY.md)** • **[🐛 Report Bug](https://github.com/yourusername/hacktrack/issues)** • **[✨ Request Feature](https://github.com/yourusername/hacktrack/issues)**
 
@@ -161,7 +161,7 @@
 ```bash
 ✅ Node.js 18+
 ✅ MongoDB (local or Atlas)
-✅ Python 3.14.3 (for AI features)
+✅ Python 3.12+ (for AI features)
 ```
 
 ### Installation
@@ -286,7 +286,7 @@ graph TB
 
 #### 🤖 **AI Service**
 
-[![Python](https://img.shields.io/badge/Python-3.14.3-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org)
+[![Python](https://img.shields.io/badge/Python-3.12+-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org)
 [![Flask](https://img.shields.io/badge/Flask-3-000000?style=flat-square&logo=flask&logoColor=white)](https://flask.palletsprojects.com)
 [![Sentence Transformers](https://img.shields.io/badge/Sentence_Transformers-3.3-FF6F00?style=flat-square)](https://www.sbert.net)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.5-EE4C2C?style=flat-square&logo=pytorch&logoColor=white)](https://pytorch.org)
