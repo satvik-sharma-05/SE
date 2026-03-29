@@ -40,6 +40,7 @@ const app = express();
 // DB Connect
 await connectDB();
 console.log("✅ MongoDB Connected");
+console.log("🌐 Allowed CORS origins:", allowedOrigins.join(", "));
 
 // Security & Middleware
 app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
