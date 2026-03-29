@@ -40,7 +40,6 @@ const app = express();
 // DB Connect
 await connectDB();
 console.log("✅ MongoDB Connected");
-console.log("🌐 Allowed CORS origins:", allowedOrigins.join(", "));
 
 // Security & Middleware
 app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
@@ -52,6 +51,8 @@ const allowedOrigins = [
   "https://hacktrack-frontend.vercel.app",
   "https://hacktrack-client.vercel.app",
 ];
+
+console.log("🌐 Allowed CORS origins:", allowedOrigins.join(", "));
 
 app.use(
   cors({
