@@ -78,6 +78,6 @@ def similarity():
 if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 5002))
-    print(f"🚀 Embedding Service running on port {port}")
+    print(f"🚀 Embedding Service starting on port {port}")
     print(f"📦 Model: all-MiniLM-L6-v2 (384 dimensions)")
     app.run(host="0.0.0.0", port=port, debug=False)
