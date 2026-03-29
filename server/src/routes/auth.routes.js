@@ -8,7 +8,7 @@ import { sendToken } from "../utils/jwt.js";
 import auth from "../middleware/auth.js";
 import bcrypt from "bcryptjs";
 import nodemailer from "nodemailer";
-
+import { validateEmail, validateRequired, validatePassword, sanitizeInput } from "../middleware/validation.js";
 
 const router = express.Router();
 
@@ -28,117 +28,125 @@ const handleOAuthSuccess = async (user, res) => {
 /* -------------------------
    1️⃣ REGISTER (email/password)
 -------------------------- */
-router.post("/register", async (req, res) => {
-  const { name, email, password, role } = req.body;
-  console.log("📥 REGISTER BODY:", req.body);
+router.post("/register",
+  validateRequired(['name', 'email', 'password']),
+  validateEmail,
+  validatePassword,
+  sanitizeInput(['name', 'bio']),
+  async (req, res) => {
+    const { name, email, password, role } = req.body;
+    console.log("📥 REGISTER BODY:", req.body);
 
-  try {
-    if (!name || !email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
+    try {
+      if (!name || !email || !password) {
+        return res.status(400).json({ message: "All fields are required" });
+      }
+
+      const existing = await User.findOne({ email });
+      if (existing) {
+        return res.status(400).json({ message: "Email already registered" });
+      }
+
+      if (password.length < 6) {
+        return res.status(400).json({ message: "Password must be at least 6 characters" });
+      }
+
+      const user = await User.create({
+        name,
+        email,
+        password,
+        role, // student | organizer ONLY
+      });
+
+      let redirect = "/";
+      if (user.role === "student") redirect = "/profile";
+      if (user.role === "organizer") redirect = "/organizer";
+
+
+      const token = jwt.sign(
+        { id: user._id },
+        config.JWT_SECRET,
+        { expiresIn: "7d" }
+      );
+
+      res.cookie("token", token, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: false,
+      });
+
+      res.status(200).json({
+        success: true,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
+        redirect,
+      });
+
+    } catch (error) {
+      console.error("Register error:", error);
+      res.status(500).json({ message: "Server error" });
     }
-
-    const existing = await User.findOne({ email });
-    if (existing) {
-      return res.status(400).json({ message: "Email already registered" });
-    }
-
-    if (password.length < 6) {
-      return res.status(400).json({ message: "Password must be at least 6 characters" });
-    }
-
-    const user = await User.create({
-      name,
-      email,
-      password,
-      role, // student | organizer ONLY
-    });
-
-    let redirect = "/";
-    if (user.role === "student") redirect = "/profile";
-    if (user.role === "organizer") redirect = "/organizer";
-
-
-    const token = jwt.sign(
-      { id: user._id },
-      config.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
-
-    res.cookie("token", token, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: false,
-    });
-
-    res.status(200).json({
-      success: true,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
-      redirect,
-    });
-
-  } catch (error) {
-    console.error("Register error:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
+  });
 
 
 /* -------------------------
    2️⃣ LOGIN (email/password)
 -------------------------- */
-router.post("/login", async (req, res) => {
-  const email = req.body.email?.toLowerCase().trim();
-  const { password } = req.body;
+router.post("/login",
+  validateRequired(['email', 'password']),
+  validateEmail,
+  async (req, res) => {
+    const email = req.body.email?.toLowerCase().trim();
+    const { password } = req.body;
 
-  try {
-    const user = await User.findOne({ email }).select("+password");
-    if (!user) {
-      return res.status(400).json({ message: "Invalid email or password" });
+    try {
+      const user = await User.findOne({ email }).select("+password");
+      if (!user) {
+        return res.status(400).json({ message: "Invalid email or password" });
+      }
+
+      const match = await user.matchPassword(password);
+      if (!match) {
+        return res.status(400).json({ message: "Invalid email or password" });
+      }
+
+      const token = jwt.sign({ id: user._id }, config.JWT_SECRET, {
+        expiresIn: "7d",
+      });
+
+      let redirect = "/";
+      if (user.role === "organizer") redirect = "/organizer";
+      else if (user.role === "student") redirect = "/profile";
+      else if (user.role === "pending")
+        redirect = `/select-role?tempId=${user._id}`;
+
+      res.cookie("token", token, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: config.NODE_ENV === "production",
+      });
+
+      res.status(200).json({
+        success: true,
+        token,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
+        redirect,
+      });
+
+    } catch (err) {
+      console.error("Login error:", err);
+      res.status(500).json({ message: "Server error" });
     }
-
-    const match = await user.matchPassword(password);
-    if (!match) {
-      return res.status(400).json({ message: "Invalid email or password" });
-    }
-
-    const token = jwt.sign({ id: user._id }, config.JWT_SECRET, {
-      expiresIn: "7d",
-    });
-
-    let redirect = "/";
-    if (user.role === "organizer") redirect = "/organizer";
-    else if (user.role === "student") redirect = "/profile";
-    else if (user.role === "pending")
-      redirect = `/select-role?tempId=${user._id}`;
-
-    res.cookie("token", token, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: config.NODE_ENV === "production",
-    });
-
-    res.status(200).json({
-      success: true,
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
-      redirect,
-    });
-
-  } catch (err) {
-    console.error("Login error:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
+  });
 
 
 

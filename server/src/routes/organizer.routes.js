@@ -1,6 +1,9 @@
 // server/src/routes/organizer.js
 import express from "express";
 import auth from "../middleware/auth.js";
+import { requireOrganizer } from "../middleware/roles.js";
+import { createEventLimiter } from "../middleware/rateLimiter.js";
+import { sanitizeInput, validateRequired } from "../middleware/validation.js";
 import User from "../models/User.js";
 import Event from "../models/Event.js";
 
@@ -9,10 +12,8 @@ const router = express.Router();
 /* -------------------------
    👤 GET ORGANIZER PROFILE
 -------------------------- */
-router.get("/profile", auth, async (req, res) => {
+router.get("/profile", auth, requireOrganizer, async (req, res) => {
   try {
-    if (req.user.role !== "organizer")
-      return res.status(403).json({ message: "Access denied" });
 
     const user = await User.findById(req.user._id)
       .select("name email avatar organization organizationDescription bio website contactEmail contactNumber location linkedin twitter")
@@ -30,40 +31,40 @@ router.get("/profile", auth, async (req, res) => {
 /* -------------------------
    ✏️ UPDATE ORGANIZER PROFILE
 -------------------------- */
-router.put("/profile", auth, async (req, res) => {
-  try {
-    if (req.user.role !== "organizer")
-      return res.status(403).json({ message: "Access denied" });
+router.put("/profile",
+  auth,
+  requireOrganizer,
+  sanitizeInput(['name', 'bio', 'organization', 'organizationDescription']),
+  async (req, res) => {
+    try {
 
-    const allowedFields = [
-      "name", "avatar", "organization", "organizationDescription", "bio", 
-      "website", "contactEmail", "contactNumber", "location", "linkedin", "twitter"
-    ];
+      const allowedFields = [
+        "name", "avatar", "organization", "organizationDescription", "bio",
+        "website", "contactEmail", "contactNumber", "location", "linkedin", "twitter"
+      ];
 
-    const updates = {};
-    for (const field of allowedFields) {
-      if (req.body[field] !== undefined) updates[field] = req.body[field];
+      const updates = {};
+      for (const field of allowedFields) {
+        if (req.body[field] !== undefined) updates[field] = req.body[field];
+      }
+
+      const updated = await User.findByIdAndUpdate(req.user._id, updates, {
+        new: true,
+        runValidators: true,
+      }).select("-password");
+
+      res.json({ success: true, user: updated });
+    } catch (err) {
+      console.error("Organizer profile update error:", err);
+      res.status(500).json({ success: false, message: "Server error" });
     }
-
-    const updated = await User.findByIdAndUpdate(req.user._id, updates, {
-      new: true,
-      runValidators: true,
-    }).select("-password");
-
-    res.json({ success: true, user: updated });
-  } catch (err) {
-    console.error("Organizer profile update error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-});
+  });
 
 /* -------------------------
    📦 FETCH ALL ORGANIZER EVENTS
 -------------------------- */
-router.get("/my-events", auth, async (req, res) => {
+router.get("/my-events", auth, requireOrganizer, async (req, res) => {
   try {
-    if (req.user.role !== "organizer")
-      return res.status(403).json({ message: "Access denied" });
 
     const events = await Event.find({
       createdBy: req.user._id,
@@ -82,10 +83,8 @@ router.get("/my-events", auth, async (req, res) => {
 /* -------------------------
    📊 ORGANIZER DASHBOARD SUMMARY
 -------------------------- */
-router.get("/summary", auth, async (req, res) => {
+router.get("/summary", auth, requireOrganizer, async (req, res) => {
   try {
-    if (req.user.role !== "organizer")
-      return res.status(403).json({ message: "Access denied" });
 
     const total = await Event.countDocuments({
       createdBy: req.user._id,
@@ -114,81 +113,87 @@ router.get("/summary", auth, async (req, res) => {
 /* -------------------------
    ✅ CREATE ORGANIZER EVENT
 -------------------------- */
-router.post("/create", auth, async (req, res) => {
-  try {
-    if (req.user.role !== "organizer")
-      return res.status(403).json({ message: "Only organizers can create events" });
+router.post("/create",
+  auth,
+  requireOrganizer,
+  createEventLimiter,
+  validateRequired(['title', 'start', 'end']),
+  sanitizeInput(['title', 'description']),
+  async (req, res) => {
+    try {
 
-    const {
-      title, description, start, end, location, prize, prizeType,
-      themes, skills, url, bannerImage
-    } = req.body;
+      const {
+        title, description, start, end, location, prize, prizeType,
+        themes, skills, url, bannerImage
+      } = req.body;
 
-    if (!title || !start || !end)
-      return res.status(400).json({ message: "Title, start, and end are required" });
+      if (!title || !start || !end)
+        return res.status(400).json({ message: "Title, start, and end are required" });
 
-    const event = await Event.create({
-      title,
-      description,
-      start,
-      end,
-      location,
-      prize,
-      prizeType,
-      themes,
-      skills,
-      url,
-      bannerImage,
-      organizerRef: req.user._id,
-      createdBy: req.user._id,
-      source: "organizer",
-      platform: "organizer",
-      type: "manual",
-      status: "approved",
-      isApproved: true,
-    });
+      const event = await Event.create({
+        title,
+        description,
+        start,
+        end,
+        location,
+        prize,
+        prizeType,
+        themes,
+        skills,
+        url,
+        bannerImage,
+        organizerRef: req.user._id,
+        createdBy: req.user._id,
+        source: "organizer",
+        platform: "organizer",
+        type: "manual",
+        status: "approved",
+        isApproved: true,
+      });
 
-    res.status(201).json({ success: true, message: "Event created successfully", event });
-  } catch (err) {
-    console.error("Create event error:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
+      res.status(201).json({ success: true, message: "Event created successfully", event });
+    } catch (err) {
+      console.error("Create event error:", err);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
 
 /* -------------------------
    ✏️ UPDATE ORGANIZER EVENT
 -------------------------- */
-router.put("/:id", auth, async (req, res) => {
-  try {
-    if (req.user.role !== "organizer")
-      return res.status(403).json({ message: "Only organizers can edit events" });
+router.put("/:id",
+  auth,
+  requireOrganizer,
+  sanitizeInput(['title', 'description']),
+  async (req, res) => {
+    try {
 
-    const event = await Event.findOne({
-      _id: req.params.id,
-      createdBy: req.user._id,
-      platform: "organizer",
-    });
+      const event = await Event.findOne({
+        _id: req.params.id,
+        createdBy: req.user._id,
+        platform: "organizer",
+      });
 
-    if (!event)
-      return res.status(404).json({ message: "Event not found or unauthorized" });
+      if (!event)
+        return res.status(404).json({ message: "Event not found or unauthorized" });
 
-    const allowedFields = [
-      "title", "description", "start", "end", "location", "prize",
-      "prizeType", "themes", "skills", "url", "bannerImage"
-    ];
+      const allowedFields = [
+        "title", "description", "start", "end", "location", "prize",
+        "prizeType", "themes", "skills", "url", "bannerImage"
+      ];
 
-    allowedFields.forEach((field) => {
-      if (req.body[field] !== undefined) event[field] = req.body[field];
-    });
+      allowedFields.forEach((field) => {
+        if (req.body[field] !== undefined) event[field] = req.body[field];
+      });
 
-    await event.save();
+      await event.save();
 
-    res.json({ success: true, message: "Event updated successfully", event });
-  } catch (err) {
-    console.error("Update event error:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
+      res.json({ success: true, message: "Event updated successfully", event });
+    } catch (err) {
+      console.error("Update event error:", err);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
 
 /* -------------------------
    🔍 GET SINGLE EVENT FOR EDITING

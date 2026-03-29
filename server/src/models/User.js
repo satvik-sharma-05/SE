@@ -1,45 +1,39 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
-
-/* -----------------------------
-   USER SCHEMA (Students + Organizers + Admin)
------------------------------ */
+import { ROLES } from "../config/constants.js";
 
 const userSchema = new mongoose.Schema(
   {
-    /* 🔐 Basic Credentials */
+    // Basic Info
     name: { type: String, required: true, trim: true },
-    email: { type: String, required: true, unique: true, trim: true },
+    email: { type: String, required: true, unique: true, trim: true, lowercase: true },
     password: { type: String, minlength: 6 },
 
-    /* 🌐 OAuth Integrations */
-    githubId: { type: String, default: null },  // Remove unique and sparse
-    googleId: { type: String, default: null },  // Remove unique and sparse
+    // OAuth
+    githubId: { type: String, unique: true, sparse: true },
+    googleId: { type: String, unique: true, sparse: true },
 
-    /* 🧩 Role & Permissions */
+    // Role
     role: {
       type: String,
-      enum: ["pending", "student", "organizer", "admin"],
-      default: "pending",
+      enum: Object.values(ROLES),
+      default: ROLES.PENDING,
     },
 
-    /* 🧠 Profile Information for AI Matching */
+    // Profile
     bio: { type: String, default: "" },
-    interests: { type: [String], default: [] },
-    preferredRoles: { type: [String], default: [] }, // Example: ["Frontend", "Backend", "Cybersecurity"]
-    skills: { type: [String], default: [] },
+    interests: [String],
+    preferredRoles: [String],
+    skills: [String],
+    profileEmbedding: [Number],
 
-    // 🧠 Embeddings for semantic AI search
-    skillsEmbeddings: { type: [[Number]], default: [] },
-    profileEmbedding: { type: [Number], default: [] },
-
-    /* 🌍 Extended Info (Filters for Recommendations) */
+    // Location & Education
     location: { type: String, default: "" },
     college: { type: String, default: "" },
-    graduationYear: { type: Number, default: null },
-    domainInterest: { type: [String], default: [] }, // e.g. ["AI", "Web Dev", "Blockchain"]
+    graduationYear: Number,
+    domainInterest: [String],
 
-    /* 💼 Organizer-Specific Info */
+    // Organizer Info
     organization: { type: String, default: "" },
     organizationDescription: { type: String, default: "" },
     website: { type: String, default: "" },
@@ -48,40 +42,31 @@ const userSchema = new mongoose.Schema(
     linkedin: { type: String, default: "" },
     twitter: { type: String, default: "" },
 
-    /* 🔖 Event Bookmarks */
+    // Bookmarks & Gamification
     bookmarks: [{ type: mongoose.Schema.Types.ObjectId, ref: "Event" }],
-
-    /* 🧮 Gamification / XP */
     xp: { type: Number, default: 0 },
     level: { type: Number, default: 1 },
 
-    /* ⚙️ System Fields */
+    // System
     isVerified: { type: Boolean, default: false },
-    lastLogin: { type: Date },
+    lastLogin: Date,
   },
   { timestamps: true }
 );
 
-/* -----------------------------
-   PASSWORD HASHING
------------------------------ */
+// Hash password before save
 userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
-  if (this.password) this.password = await bcrypt.hash(this.password, 10);
+  if (!this.isModified("password") || !this.password) return next();
+  this.password = await bcrypt.hash(this.password, 10);
   next();
 });
 
-/* -----------------------------
-   PASSWORD COMPARISON
------------------------------ */
-userSchema.methods.matchPassword = async function (enteredPassword) {
-  if (!this.password) return false;
-  return bcrypt.compare(enteredPassword, this.password);
+// Compare password
+userSchema.methods.matchPassword = async function (pwd) {
+  return this.password ? bcrypt.compare(pwd, this.password) : false;
 };
 
-/* -----------------------------
-   CLEAN OUTPUT
------------------------------ */
+// Clean output
 userSchema.set("toJSON", {
   transform: (_, ret) => {
     delete ret.password;

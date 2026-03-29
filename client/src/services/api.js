@@ -1,9 +1,10 @@
 // src/services/api.js
 import axios from "axios";
 
-const API_BASE = import.meta.env.DEV
-  ? "http://localhost:5000/api"
-  : __API_BASE__;
+const API_BASE = import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.DEV
+    ? "http://localhost:5000/api"
+    : "https://hacktrack1-mu.vercel.app/api");
 
 if (!API_BASE) {
   throw new Error("❌ API_BASE is undefined. Check VITE_API_BASE_URL at build time.");
@@ -40,15 +41,15 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
+
     // Log request for debugging (only in development)
     if (import.meta.env.DEV) {
-console.log(
-  `🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`,
-  config.data
-);
+      console.log(
+        `🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`,
+        config.data
+      );
     }
-    
+
     return config;
   },
   (error) => {
@@ -83,12 +84,12 @@ api.interceptors.response.use(
         window.location.href = "/login";
       }
     }
-    
+
     // Handle network errors
     if (!error.response) {
       console.error("🌐 Network error - server may be down");
     }
-    
+
     return Promise.reject(error);
   }
 );
@@ -104,14 +105,14 @@ api.interceptors.response.use(
 export async function fetchLiveEvents(params = {}) {
   try {
     console.log("🌐 Fetching live events with params:", params);
-    
-    const resp = await api.get("/events/live", { 
+
+    const resp = await api.get("/events/live", {
       params,
       timeout: 15000 // 15 second timeout for events
     });
-    
+
     console.log("📡 RAW API RESPONSE - Status:", resp.status);
-    
+
     if (!resp.data?.success) {
       console.warn("⚠️ API returned non-success response:", resp.data);
       throw new Error(resp.data?.message || resp.data?.error || "Failed to fetch events");
@@ -119,7 +120,7 @@ export async function fetchLiveEvents(params = {}) {
 
     const events = resp.data.events || [];
     console.log(`✅ Total events received: ${events.length}`);
-    
+
     // Enhanced analysis with MLH support
     if (events.length > 0) {
       const sourceCount = events.reduce((acc, event) => {
@@ -127,7 +128,7 @@ export async function fetchLiveEvents(params = {}) {
         return acc;
       }, {});
       console.log("📊 Events by source:", sourceCount);
-      
+
       // Check event structure
       console.log("🔍 First event sample:", {
         title: events[0].title,
@@ -148,14 +149,14 @@ export async function fetchLiveEvents(params = {}) {
       count: resp.data.count || 0,
       sources: resp.data.sources || {} // Include source breakdown
     };
-    
+
   } catch (error) {
     console.error("❌ Fetch live events error:", {
       message: error.message,
       code: error.code,
       response: error.response?.data
     });
-    
+
     // Provide more user-friendly error messages
     if (error.code === 'ECONNABORTED') {
       throw new Error("Request timeout - server is taking too long to respond");
@@ -172,11 +173,11 @@ export async function fetchLiveEvents(params = {}) {
  */
 export async function fetchMLHEvents(params = {}) {
   try {
-    const resp = await api.get("/events/mlh", { 
+    const resp = await api.get("/events/mlh", {
       params,
-      timeout: 10000 
+      timeout: 10000
     });
-    
+
     if (!resp.data?.success) {
       console.warn("MLH API warning:", resp.data);
       return {
@@ -209,11 +210,11 @@ export async function fetchMLHEvents(params = {}) {
  */
 export async function fetchDevpostEvents(params = {}) {
   try {
-    const resp = await api.get("/events/devpost", { 
+    const resp = await api.get("/events/devpost", {
       params,
-      timeout: 10000 
+      timeout: 10000
     });
-    
+
     if (!resp.data?.success) {
       console.warn("Devpost API warning:", resp.data);
       return {
@@ -247,16 +248,16 @@ export async function fetchDevpostEvents(params = {}) {
 export async function fetchEventsBySource(source, params = {}) {
   try {
     const validSources = ['devpost', 'mlh', 'clist', 'organizer'];
-    
+
     if (!validSources.includes(source)) {
       throw new Error(`Invalid source: ${source}. Must be one of: ${validSources.join(', ')}`);
     }
 
-    const resp = await api.get(`/events/${source}`, { 
+    const resp = await api.get(`/events/${source}`, {
       params,
-      timeout: 10000 
+      timeout: 10000
     });
-    
+
     if (!resp.data?.success) {
       console.warn(`${source} API warning:`, resp.data);
       return {
@@ -290,7 +291,7 @@ export async function fetchEventsBySource(source, params = {}) {
 export async function fetchMLHHealth() {
   try {
     const resp = await api.get("/events/mlh/health", { timeout: 5000 });
-    
+
     if (!resp.data?.success) {
       return {
         service: 'MLH',
@@ -321,7 +322,7 @@ export async function fetchMLHHealth() {
 export async function fetchEventStatistics() {
   try {
     const resp = await api.get("/events/statistics", { timeout: 8000 });
-    
+
     if (!resp.data?.success) {
       console.warn("Statistics API warning:", resp.data);
       return getFallbackStatistics();
@@ -352,7 +353,7 @@ function getFallbackStatistics() {
 export async function createPersonalEvent(eventData) {
   try {
     const resp = await api.post("/events/personal", eventData, { timeout: 10000 });
-    
+
     if (!resp.data?.success) {
       throw new Error(resp.data?.message || "Failed to create event");
     }
@@ -370,7 +371,7 @@ export async function createPersonalEvent(eventData) {
 export async function fetchEventById(eventId) {
   try {
     const resp = await api.get(`/events/${eventId}`, { timeout: 8000 });
-    
+
     if (!resp.data?.success) {
       throw new Error(resp.data?.message || "Event not found");
     }
@@ -387,11 +388,11 @@ export async function fetchEventById(eventId) {
  */
 export async function searchEvents(searchParams) {
   try {
-    const resp = await api.get("/events", { 
+    const resp = await api.get("/events", {
       params: searchParams,
-      timeout: 10000 
+      timeout: 10000
     });
-    
+
     if (!resp.data?.success) {
       throw new Error(resp.data?.message || "Search failed");
     }
@@ -483,11 +484,11 @@ export async function fetchMyParticipations() {
 export async function fetchSavedEvents(eventIds = []) {
   try {
     const idsParam = eventIds.join(',');
-    const resp = await api.get("/events/saved", { 
+    const resp = await api.get("/events/saved", {
       params: { ids: idsParam },
-      timeout: 8000 
+      timeout: 8000
     });
-    
+
     if (!resp.data?.success) {
       return [];
     }
@@ -531,7 +532,7 @@ export async function findTeammates(payload) {
 export async function getRecommendedTeammates(filters = {}) {
   try {
     const res = await api.post("/teammates/recommend", { filters }, { timeout: 10000 });
-    
+
     if (!res.data?.success) {
       throw new Error(res.data?.message || "Failed to get recommendations");
     }

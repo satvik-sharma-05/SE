@@ -48,7 +48,42 @@ export const registerUser = async (req, res) => {
 
 
 // ✅ Login
+export const loginUser = async (req, res) => {
+  try {
+    const email = req.body.email?.toLowerCase().trim();
+    const { password } = req.body;
 
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required" });
+    }
+
+    const user = await User.findOne({ email }).select("+password");
+    if (!user) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const isMatch = await user.matchPassword(password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const token = generateToken(user._id);
+    res.cookie("token", token, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+    });
+
+    res.json({
+      success: true,
+      user: { id: user._id, name: user.name, email: user.email, role: user.role },
+      token,
+    });
+  } catch (err) {
+    console.error("Login error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
 // ✅ Logout
 export const logoutUser = (req, res) => {

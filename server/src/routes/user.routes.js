@@ -1,7 +1,10 @@
 import express from "express";
+import mongoose from "mongoose";
 import auth from "../middleware/auth.js";
 import { getMyProfile, updateMyProfile } from "../controllers/user.controller.js";
-import User from "../models/User.js"
+import { sanitizeInput } from "../middleware/validation.js";
+import User from "../models/User.js";
+
 const router = express.Router();
 
 // ✅ GET current user profile
@@ -38,6 +41,11 @@ router.put("/role", async (req, res) => {
 router.get("/:id", auth, async (req, res) => {
   try {
     const targetId = req.params.id;
+
+    // Validate MongoDB ObjectId
+    if (!mongoose.isValidObjectId(targetId)) {
+      return res.status(400).json({ success: false, message: "Invalid user ID" });
+    }
 
     // prevent self if you want (optional)
     // if (targetId === String(req.user._id)) {

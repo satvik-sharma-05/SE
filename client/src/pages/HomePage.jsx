@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowRight, Users, Zap } from "lucide-react";
+import { ArrowRight, Users, Zap, Sparkles, TrendingUp, Award } from "lucide-react";
 import Hero from "../components/layout/Hero";
 import EventCard from "../components/events/EventCard";
 import { getRecommendedTeammates } from "../services/api";
@@ -7,7 +7,6 @@ import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router-dom";
 import SendInvitationModal from "../components/invitaions/SendInvitationModal";
 
-// Main HomePage Component
 export default function HomePage() {
   const { user: currentUser } = useAuth();
   const [events, setEvents] = useState([]);
@@ -15,27 +14,27 @@ export default function HomePage() {
   const [loadingTeammates, setLoadingTeammates] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_BASE_URL}/events/live`) 
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/events/live`)
       .then(res => res.json())
       .then(data => {
         const list = Array.isArray(data) ? data : data.events || [];
-        setEvents(list.slice(0, 6)); // show top 6
+        setEvents(list.slice(0, 6));
       });
   }, []);
-  
+
   useEffect(() => {
     if (currentUser) {
       fetchRecommendedTeammates();
     }
   }, [currentUser]);
-  
+
   const fetchRecommendedTeammates = async () => {
     setLoadingTeammates(true);
     try {
       const recs = await getRecommendedTeammates();
-      setRecommendedTeammates(recs.slice(0, 3)); // Show top 3 recommendations
+      setRecommendedTeammates(recs.slice(0, 3));
     } catch (err) {
       console.error("Failed to fetch recommendations:", err);
     } finally {
@@ -54,130 +53,187 @@ export default function HomePage() {
   };
 
   const handleInvitationSuccess = () => {
-    // Optional: Show success message or refresh recommendations
     console.log("Invitation sent successfully!");
   };
-  
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black">
       <Hero />
-      
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        {/* Stats Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
+          <div className="bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 rounded-2xl p-8 hover:border-cyan-400/50 transition-all hover:shadow-[0_0_30px_rgba(0,255,255,0.3)] group">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="p-3 bg-cyan-500/20 rounded-xl group-hover:bg-cyan-500/30 transition-all">
+                <TrendingUp className="w-8 h-8 text-cyan-400" />
+              </div>
+              <div>
+                <h3 className="text-3xl font-bold text-white">500+</h3>
+                <p className="text-cyan-300/70">Active Hackathons</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-2xl p-8 hover:border-purple-400/50 transition-all hover:shadow-[0_0_30px_rgba(168,85,247,0.3)] group">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="p-3 bg-purple-500/20 rounded-xl group-hover:bg-purple-500/30 transition-all">
+                <Users className="w-8 h-8 text-purple-400" />
+              </div>
+              <div>
+                <h3 className="text-3xl font-bold text-white">10K+</h3>
+                <p className="text-purple-300/70">Active Users</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-2xl p-8 hover:border-green-400/50 transition-all hover:shadow-[0_0_30px_rgba(34,197,94,0.3)] group">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="p-3 bg-green-500/20 rounded-xl group-hover:bg-green-500/30 transition-all">
+                <Award className="w-8 h-8 text-green-400" />
+              </div>
+              <div>
+                <h3 className="text-3xl font-bold text-white">2K+</h3>
+                <p className="text-green-300/70">Teams Formed</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Featured Hackathons Section */}
-        <div className="text-center mb-12">
-          <h2 className="text-5xl font-bold mb-4">
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-500/10 border border-cyan-500/30 rounded-full mb-6">
+            <Sparkles className="w-4 h-4 text-cyan-400" />
+            <span className="text-cyan-300 text-sm font-semibold">TRENDING NOW</span>
+          </div>
+          <h2 className="text-6xl font-bold mb-6">
             <span className="text-white">Featured </span>
-            <span className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent">
               Hackathons
             </span>
           </h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-cyan-400 to-blue-500 mx-auto"></div>
+          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+            Discover the most exciting hackathons happening right now
+          </p>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
           {events.map((event, index) => (
-            <EventCard key={index} event={event} />
+            <div key={index} className="transform hover:scale-105 transition-transform duration-300">
+              <EventCard event={event} />
+            </div>
           ))}
         </div>
-        
-        <div className="text-center mb-20">
-          <Link 
+
+        <div className="text-center mb-24">
+          <Link
             to="/events"
-            className="group px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-black font-bold rounded-lg hover:from-cyan-400 hover:to-blue-400 transition-all transform hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/50 inline-flex items-center gap-2"
+            className="group relative inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 text-white font-bold rounded-xl hover:shadow-[0_0_40px_rgba(0,255,255,0.6)] transition-all transform hover:scale-105"
           >
-            Explore more
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            <span>Explore All Hackathons</span>
+            <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
           </Link>
         </div>
-        
-        {/* Recommended Teammates Section */}
+
+        {/* AI Recommendations Section */}
         {currentUser && (
-          <div className="mt-16">
-            {/* ───────── Header ───────── */}
-            <div className="text-center mb-12">
-              <h2 className="text-5xl font-bold mb-4">
-                <span className="text-white">AI-Powered </span>
-                <span className="text-cyan-400 drop-shadow-[0_0_10px_#00ffff]">
-                  Teammate Recommendations
+          <div className="mt-24">
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500/10 border border-purple-500/30 rounded-full mb-6">
+                <Zap className="w-4 h-4 text-purple-400 animate-pulse" />
+                <span className="text-purple-300 text-sm font-semibold">AI-POWERED</span>
+              </div>
+              <h2 className="text-6xl font-bold mb-6">
+                <span className="text-white">Your Perfect </span>
+                <span className="bg-gradient-to-r from-purple-400 via-pink-500 to-cyan-400 bg-clip-text text-transparent">
+                  Teammates
                 </span>
               </h2>
-              <div className="w-24 h-[3px] bg-cyan-400 mx-auto mb-4 shadow-[0_0_15px_#00ffff]" />
-              <p className="text-cyan-200/80 text-lg max-w-2xl mx-auto font-light">
-                Smart matches based on your skills, interests, and project compatibility
+              <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+                AI-powered matching based on skills and compatibility
               </p>
             </div>
 
-            {/* ───────── Loading ───────── */}
             {loadingTeammates ? (
-              <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto mb-4"></div>
-                <p className="text-cyan-300">Finding your perfect teammates...</p>
+              <div className="text-center py-20">
+                <div className="relative inline-block">
+                  <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-cyan-400"></div>
+                  <div className="absolute inset-0 animate-ping rounded-full h-16 w-16 border-4 border-cyan-400 opacity-20"></div>
+                </div>
+                <p className="text-cyan-300 mt-6 text-lg font-semibold animate-pulse">Analyzing profiles...</p>
               </div>
             ) : recommendedTeammates.length > 0 ? (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
                 {recommendedTeammates.map((user, index) => (
                   <div
                     key={user._id}
-                    className="bg-black/80 border border-cyan-500/40 rounded-2xl p-6 hover:border-cyan-400 transition-all duration-300 hover:shadow-[0_0_25px_#00ffff] hover:scale-[1.02]"
+                    className="group relative bg-gradient-to-br from-gray-900 to-black border border-cyan-500/30 rounded-3xl p-8 hover:border-cyan-400/60 transition-all duration-500 hover:shadow-[0_0_50px_rgba(0,255,255,0.4)] hover:scale-105"
                   >
-                    {/* Rank & Score */}
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center justify-center w-8 h-8 bg-cyan-500 text-black rounded-full text-sm font-bold shadow-[0_0_10px_#00ffff]">
-                          #{index + 1}
-                        </div>
-                        <div>
-                          <h3 className="text-xl font-bold text-white hover:text-cyan-300 transition-colors">
-                            {user.name}
-                          </h3>
-                          {user.xp > 0 && (
-                            <p className="text-xs text-cyan-300/70">
-                              ⭐ {user.xp} XP • Level {user.level}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-cyan-300 text-sm font-bold px-3 py-1 rounded-md border border-cyan-400/70 shadow-[0_0_10px_#00ffff]">
-                          {(user.score * 100).toFixed(0)}% Match
-                        </div>
+                    <div className="absolute -top-4 -right-4 flex items-center justify-center w-12 h-12 bg-gradient-to-br from-cyan-400 to-blue-500 text-black rounded-full text-lg font-bold shadow-[0_0_20px_rgba(0,255,255,0.6)] z-10">
+                      #{index + 1}
+                    </div>
+
+                    <div className="absolute top-6 right-6">
+                      <div className="px-4 py-2 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-400/50 rounded-xl backdrop-blur-sm">
+                        <span className="text-cyan-300 text-sm font-bold">{(user.score * 100).toFixed(0)}% Match</span>
                       </div>
                     </div>
 
-                    {/* Bio */}
+                    <div className="flex items-start gap-4 mb-6">
+                      <div className="relative">
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 p-0.5">
+                          <div className="w-full h-full rounded-full bg-gray-900 flex items-center justify-center text-2xl font-bold text-cyan-400">
+                            {user.name.charAt(0).toUpperCase()}
+                          </div>
+                        </div>
+                        {user.xp > 0 && (
+                          <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center text-xs font-bold text-black border-2 border-gray-900">
+                            {user.level}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-2xl font-bold text-white group-hover:text-cyan-300 transition-colors">
+                          {user.name}
+                        </h3>
+                        {user.xp > 0 && (
+                          <p className="text-sm text-cyan-300/70 flex items-center gap-1">
+                            <Award className="w-3 h-3" />
+                            {user.xp} XP
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
                     {user.bio && (
-                      <p className="text-cyan-100/80 text-sm mb-4 line-clamp-2">
+                      <p className="text-gray-300 text-sm mb-6 line-clamp-2">
                         {user.bio}
                       </p>
                     )}
 
-                    {/* Profile Info */}
-                    <div className="space-y-2 mb-4 text-sm">
+                    <div className="space-y-3 mb-6">
                       {user.college && (
-                        <div className="flex items-center text-cyan-300">
-                          <span className="mr-2">🎓</span>
-                          <span className="truncate">{user.college}</span>
+                        <div className="flex items-center gap-2 text-cyan-300/80">
+                          <span>🎓</span>
+                          <span className="text-sm truncate">{user.college}</span>
                         </div>
                       )}
                       {user.location && (
-                        <div className="flex items-center text-cyan-300">
-                          <span className="mr-2">📍</span>
-                          <span>{user.location}</span>
+                        <div className="flex items-center gap-2 text-cyan-300/80">
+                          <span>📍</span>
+                          <span className="text-sm">{user.location}</span>
                         </div>
                       )}
                     </div>
 
-                    {/* Skills */}
                     {user.skills?.length > 0 && (
-                      <div className="mb-4">
-                        <p className="text-xs font-semibold text-cyan-400 mb-2 uppercase tracking-wide">
-                          Skills
-                        </p>
-                        <div className="flex flex-wrap gap-1">
+                      <div className="mb-6">
+                        <p className="text-xs font-bold text-cyan-400 mb-3 uppercase">Top Skills</p>
+                        <div className="flex flex-wrap gap-2">
                           {user.skills.slice(0, 4).map((skill) => (
                             <span
                               key={skill}
-                              className="px-2 py-1 bg-cyan-500/10 text-cyan-300 border border-cyan-400/30 rounded-md text-xs"
+                              className="px-3 py-1.5 bg-cyan-500/10 text-cyan-300 border border-cyan-400/30 rounded-lg text-xs"
                             >
                               {skill}
                             </span>
@@ -186,101 +242,81 @@ export default function HomePage() {
                       </div>
                     )}
 
-                    {/* Roles */}
-                    {user.preferredRoles?.length > 0 && (
-                      <div className="mb-4">
-                        <p className="text-xs font-semibold text-cyan-400 mb-2 uppercase tracking-wide">
-                          Roles
-                        </p>
-                        <div className="flex flex-wrap gap-1">
-                          {user.preferredRoles.slice(0, 2).map((role) => (
-                            <span
-                              key={role}
-                              className="px-2 py-1 bg-cyan-500/10 text-cyan-300 border border-cyan-400/30 rounded-md text-xs"
-                            >
-                              {role}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Actions */}
-                    <div className="flex gap-2 pt-4 border-t border-cyan-400/20">
-                      <button 
-                        className="flex-1 bg-cyan-500 text-blue py-2 px-3 rounded-lg text-sm font-bold hover:bg-cyan-400 hover:shadow-[0_0_15px_#00ffff] transition-all"
+                    <div className="flex gap-3 pt-6 border-t border-cyan-400/20">
+                      <button
+                        className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-3 px-4 rounded-xl text-sm font-bold hover:shadow-[0_0_20px_rgba(0,255,255,0.6)] transition-all"
                         onClick={() => handleOpenModal(user)}
                       >
                         Send Invite
                       </button>
                       <Link
                         to={`/user/${user._id}`}
-                        className="px-3 py-2 border border-cyan-400/60 text-cyan-300 hover:bg-cyan-500/10 rounded-lg text-sm hover:shadow-[0_0_10px_#00ffff] transition-all"
+                        className="px-4 py-3 border border-cyan-400/60 text-cyan-300 hover:bg-cyan-500/10 rounded-xl text-sm font-bold transition-all"
                       >
-                        View Profile
+                        Profile
                       </Link>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12 bg-black/80 rounded-2xl border border-cyan-400/40 shadow-[0_0_25px_#00ffff50]">
-                <div className="text-6xl mb-4">🤖</div>
-                <h3 className="text-xl font-bold text-white mb-2">No Recommendations Yet</h3>
-                <p className="text-cyan-300 mb-6 max-w-md mx-auto">
-                  Update your profile with skills and interests to get personalized teammate recommendations.
+              <div className="text-center py-20 bg-gradient-to-br from-gray-900 to-black rounded-3xl border border-cyan-400/30">
+                <div className="text-8xl mb-6">🤖</div>
+                <h3 className="text-3xl font-bold text-white mb-4">No Recommendations Yet</h3>
+                <p className="text-gray-400 mb-8 max-w-md mx-auto">
+                  Complete your profile to unlock AI recommendations
                 </p>
                 <Link
                   to="/profile"
-                  className="bg-cyan-500 text-black px-6 py-3 rounded-lg font-bold hover:bg-cyan-400 hover:shadow-[0_0_20px_#00ffff] transition-transform hover:scale-105 inline-flex items-center gap-2"
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-8 py-4 rounded-xl font-bold hover:shadow-[0_0_30px_rgba(0,255,255,0.6)] transition-all"
                 >
-                  Update Profile
+                  <Sparkles className="w-5 h-5" />
+                  Complete Profile
                 </Link>
               </div>
             )}
 
-            {/* View All Button */}
             {recommendedTeammates.length > 0 && (
-              <div className="text-center mt-8">
+              <div className="text-center mt-12">
                 <Link
                   to="/recommendations"
-                  className="px-8 py-4 border border-cyan-400 text-cyan-300 rounded-lg font-bold hover:bg-cyan-500/10 hover:shadow-[0_0_20px_#00ffff] transition-all inline-flex items-center gap-2"
+                  className="inline-flex items-center gap-3 px-10 py-5 border-2 border-cyan-400 text-cyan-300 rounded-xl font-bold hover:bg-cyan-500/10 hover:shadow-[0_0_30px_rgba(0,255,255,0.4)] transition-all group"
                 >
                   <Zap className="w-5 h-5" />
                   View All Recommendations
-                  <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
                 </Link>
               </div>
             )}
           </div>
         )}
 
-        {/* Call to Action for Non-Logged In Users */}
         {!currentUser && (
-          <div className="text-center py-16 bg-gradient-to-br from-gray-900 to-black rounded-2xl border border-cyan-400/30">
-            <div className="text-6xl mb-4">🚀</div>
-            <h3 className="text-2xl font-bold text-white mb-4">Ready to Find Your Dream Team?</h3>
-            <p className="text-gray-400 mb-8 max-w-md mx-auto text-lg">
-              Sign in to get AI-powered teammate recommendations based on your skills and interests.
-            </p>
-            <div className="flex gap-4 justify-center">
-              <Link
-                to="/login"
-                className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-8 py-3 rounded-lg font-bold hover:scale-105 transition-transform"
-              >
-                Sign In
-              </Link>
-              <Link
-                to="/register"
-                className="border border-cyan-400 text-cyan-400 px-8 py-3 rounded-lg font-bold hover:bg-cyan-400/10 transition-all"
-              >
-                Create Account
-              </Link>
+          <div className="text-center py-24 bg-gradient-to-br from-gray-900 to-black rounded-3xl border border-cyan-400/30 relative overflow-hidden">
+            <div className="relative z-10">
+              <div className="text-8xl mb-6">🚀</div>
+              <h3 className="text-4xl font-bold text-white mb-6">Ready to Build Something Amazing?</h3>
+              <p className="text-gray-400 mb-10 max-w-2xl mx-auto text-xl">
+                Join thousands of developers finding their perfect teammates
+              </p>
+              <div className="flex gap-6 justify-center">
+                <Link
+                  to="/login"
+                  className="bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 text-white px-10 py-4 rounded-xl font-bold hover:shadow-[0_0_40px_rgba(0,255,255,0.6)] transition-all"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  to="/register"
+                  className="border-2 border-cyan-400 text-cyan-400 px-10 py-4 rounded-xl font-bold hover:bg-cyan-400/10 transition-all"
+                >
+                  Create Account
+                </Link>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Invitation Modal */}
         {selectedUser && (
           <SendInvitationModal
             user={selectedUser}

@@ -4,6 +4,16 @@ dotenv.config();
 
 const isProd = process.env.NODE_ENV === "production";
 
+// Validate required environment variables
+const requiredEnvVars = ['MONGO_URI', 'JWT_SECRET'];
+const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+if (missingEnvVars.length > 0) {
+  console.error(`❌ Missing required environment variables: ${missingEnvVars.join(', ')}`);
+  console.error('Please check your .env file');
+  process.exit(1);
+}
+
 export const config = {
   NODE_ENV: process.env.NODE_ENV || "development",
   PORT: process.env.PORT || 5000,
@@ -45,13 +55,13 @@ export const config = {
   EMAIL_USER: process.env.EMAIL_USER,
   EMAIL_PASS: process.env.EMAIL_PASS,
 
-  // ✅ OpenAI
-  OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+  // ✅ Embedding Service
+  EMBEDDING_URL: process.env.EMBEDDING_URL || "http://localhost:5002",
 
   // ✅ Embeddings (OPTIONAL, SAFE DEFAULT)
   EMBEDDING_URL:
-  process.env.EMBEDDING_URL ||
-  "http://localhost:5002",
+    process.env.EMBEDDING_URL ||
+    "http://localhost:5002",
 
   // ✅ Cache
   CACHE_TTL_MIN: parseInt(process.env.CACHE_TTL_MIN || "180", 10),

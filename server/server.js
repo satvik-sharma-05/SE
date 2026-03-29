@@ -1,6 +1,7 @@
 // server.js
 import express from "express";
 import session from "express-session";
+import MongoStore from "connect-mongo";
 import { connectDB } from "./src/config/db.js";
 import { config } from "./src/config/env.js";
 import { errorHandler } from "./src/middleware/error.js";
@@ -11,6 +12,9 @@ import helmet from "helmet";
 import compression from "compression";
 import passport from "passport";
 import initPassport from "./src/config/passport.js";
+
+// Middleware
+import { apiLimiter, authLimiter } from "./src/middleware/rateLimiter.js";
 
 // Routes
 import authRoutes from "./src/routes/auth.routes.js";
@@ -23,6 +27,7 @@ import adminRoutes from "./src/routes/admin.routes.js";
 import teammatesRoutes from "./src/routes/teammates.routes.js";
 import invitationRoutes from "./src/routes/invitations.js";
 import chatRoutes from "./src/routes/chats.js";
+import healthRoutes from "./src/routes/health.routes.js";
 
 // Models
 import Event from "./src/models/Event.js";
@@ -30,51 +35,28 @@ import Event from "./src/models/Event.js";
 // Controllers
 import { getLiveMLH, getMLHHealth } from "./src/controllers/events.controller.js";
 
-// ----------------------------------------------------
-// ✅ INIT APP
 const app = express();
 
-// ----------------------------------------------------
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// ----------------------------------------------------
-// ✅ DB CONNECT
-// ----------------------------------------------------
+// DB Connect
 await connectDB();
 console.log("✅ MongoDB Connected");
 
-// ----------------------------------------------------
-// ✅ SECURITY & MIDDLEWARE
-// ----------------------------------------------------
-app.use(
-  helmet({
-    contentSecurityPolicy: false,
-    crossOriginEmbedderPolicy: false,
-  })
-);
+// Security & Middleware
+app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
 
 const allowedOrigins = [
   "http://localhost:5173",
+  "http://localhost:5174",
   "https://hacktrack1-mu.vercel.app",
-  "https://hacktrack1-git-main-satviks-projects-f9a33fe2.vercel.app",
 ];
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      // allow requests with no origin (Postman, server-to-server)
       if (!origin) return callback(null, true);
-
-      if (allowedOrigins.includes(origin)) {
+      if (allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
         return callback(null, true);
       }
-
-      // 🔥 Allow all Vercel preview URLs safely
-      if (origin.endsWith(".vercel.app")) {
-        return callback(null, true);
-      }
-
       return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
@@ -83,25 +65,29 @@ app.use(
   })
 );
 
-
 app.use(compression());
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// ----------------------------------------------------
-// ✅ SESSION + PASSPORT
-// ----------------------------------------------------
+// Session with MongoDB Store (Fixed)
 app.use(
   session({
     secret: config.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
+    store: MongoStore.create({
+      mongoUrl: config.MONGO_URI,
+      touchAfter: 24 * 3600, // Lazy session update
+      crypto: {
+        secret: config.SESSION_SECRET
+      }
+    }),
     cookie: {
       httpOnly: true,
       secure: config.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      sameSite: config.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     },
   })
 );
@@ -110,29 +96,24 @@ initPassport();
 app.use(passport.initialize());
 app.use(passport.session());
 
-// ----------------------------------------------------
-// ✅ ROUTES
-// ----------------------------------------------------
-app.get("/", (_req, res) =>
-  res.json({ status: "HackTrack API running" })
-);
+// Routes
+app.get("/", (_req, res) => res.json({ status: "HackTrack API running" }));
 
-app.use("/api/auth", authRoutes);
-app.use("/api/events", eventsRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/organizer", organizerRoutes);
-app.use("/api/contests", contestsRoutes);
-app.use("/api/participation", participationRoutes);
-app.use("/api/admin", adminRoutes);
-app.use("/api/teammates", teammatesRoutes);
-app.use("/api/invitations", invitationRoutes);
-app.use("/api/chats", chatRoutes);
+app.use("/api/health", healthRoutes);
+app.use("/api/auth", authLimiter, authRoutes);
+app.use("/api/events", apiLimiter, eventsRoutes);
+app.use("/api/users", apiLimiter, userRoutes);
+app.use("/api/organizer", apiLimiter, organizerRoutes);
+app.use("/api/contests", apiLimiter, contestsRoutes);
+app.use("/api/participation", apiLimiter, participationRoutes);
+app.use("/api/admin", apiLimiter, adminRoutes);
+app.use("/api/teammates", apiLimiter, teammatesRoutes);
+app.use("/api/invitations", apiLimiter, invitationRoutes);
+app.use("/api/chats", apiLimiter, chatRoutes);
 
-// MLH health (READ ONLY)
 app.get("/api/events/mlh", getLiveMLH);
 app.get("/api/events/mlh/health", getMLHHealth);
 
-// Debug
 app.get("/api/debug/schema", (_req, res) => {
   res.json({
     model: Event.modelName,
@@ -140,14 +121,10 @@ app.get("/api/debug/schema", (_req, res) => {
   });
 });
 
-// ----------------------------------------------------
-// ✅ ERROR HANDLER
-// ----------------------------------------------------
+// Error Handler
 app.use(errorHandler);
 
-// ----------------------------------------------------
-// ✅ START SERVER
-// ----------------------------------------------------
+// Start Server
 app.listen(config.PORT, () => {
   console.log(`🚀 Server running on port ${config.PORT}`);
 });
