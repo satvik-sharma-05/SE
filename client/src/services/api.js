@@ -6,9 +6,8 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL ||
     ? "http://localhost:5000/api"
     : "https://hacktrack-server-674s.onrender.com/api");
 
-if (!API_BASE) {
-  throw new Error("❌ API_BASE is undefined. Check VITE_API_BASE_URL at build time.");
-}
+// Remove the strict check since we have a good fallback
+console.log("🔥 API BASE URL:", API_BASE);
 
 
 const api = axios.create({
