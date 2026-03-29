@@ -1,8 +1,10 @@
-// Embedding client for HashingVectorizer service
+// Embedding client for sentence-transformers service
 import fetch from "node-fetch";
 
 const EMBEDDING_URL = process.env.EMBEDDING_URL || "http://localhost:5002";
 const TIMEOUT_MS = 10000;
+
+console.log("🔗 Embedding service URL:", EMBEDDING_URL);
 
 export async function getEmbedding(text) {
   const controller = new AbortController();
@@ -29,11 +31,14 @@ export async function getEmbedding(text) {
     clearTimeout(timeout);
 
     if (err.name === 'AbortError') {
-      console.error("Embedding service timeout after", TIMEOUT_MS, "ms");
-      throw new Error("Embedding service timeout");
+      console.error("⏱️ Embedding service timeout after", TIMEOUT_MS, "ms");
+      console.error("💡 Check EMBEDDING_URL environment variable:", EMBEDDING_URL);
+      throw new Error("Embedding service timeout - check if service is running");
     }
 
-    console.error("Embedding service error:", err.message);
-    throw new Error("Embedding service unavailable");
+    console.error("❌ Embedding service error:", err.message);
+    console.error("💡 Current EMBEDDING_URL:", EMBEDDING_URL);
+    console.error("💡 Expected URL: https://hacktrack-embedding.onrender.com");
+    throw new Error(`Embedding service unavailable: ${err.message}`);
   }
 }

@@ -67,7 +67,17 @@ router.post("/find", auth, expensiveOperationLimiter, async (req, res) => {
     res.json({ success: true, results: topResults, count: topResults.length, totalMatches: results.length });
   } catch (err) {
     console.error("Find teammates error:", err);
-    res.status(500).json({ success: false, message: "Failed to search teammates" });
+
+    // Provide helpful error message if embedding service is down
+    if (err.message.includes("Embedding service")) {
+      return res.status(503).json({
+        success: false,
+        message: "AI teammate search is temporarily unavailable. Please check if the embedding service is configured correctly.",
+        error: err.message
+      });
+    }
+
+    res.status(500).json({ success: false, message: "Failed to search teammates", error: err.message });
   }
 });
 
