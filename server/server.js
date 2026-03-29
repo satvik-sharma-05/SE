@@ -57,10 +57,14 @@ console.log("🌐 Allowed CORS origins:", allowedOrigins.join(", "));
 app.use(
   cors({
     origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
+
+      // Check if origin is in allowed list or ends with .vercel.app
       if (allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
-        return callback(null, true);
+        return callback(null, origin); // Return the actual origin, not just true
       }
+
       return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
