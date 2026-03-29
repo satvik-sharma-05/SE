@@ -36,7 +36,7 @@
 <h3>⚙️ Backend</h3>
 <p><a href="https://hacktrack-server-674s.onrender.com/api">hacktrack-server-674s.onrender.com</a></p>
 <p><sub>Deployed on Render</sub></p>
-<p><sub>✅ Auto-deploys from main branch</sub></p>
+<p><sub> Auto-deploys from main branch</sub></p>
 </td>
 <td align="center" width="33%">
 <h3>🤖 AI Service</h3>
