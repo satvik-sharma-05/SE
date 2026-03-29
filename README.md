@@ -10,9 +10,9 @@
 [![Node.js](https://img.shields.io/badge/Node.js-18+-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org)
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com)
-[![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org)
+[![Python](https://img.shields.io/badge/Python-3.14.3-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org)
 
-**[🌐 Live Demo](https://hacktrack1-mu.vercel.app)** • **[📖 Documentation](DEPLOYMENT.md)** • **[🐛 Report Bug](https://github.com/yourusername/hacktrack/issues)** • **[✨ Request Feature](https://github.com/yourusername/hacktrack/issues)**
+**[🌐 Live Demo](https://hacktrack1-mu.vercel.app)** • **[📖 Documentation](DEPLOY.md)** • **[🐛 Report Bug](https://github.com/yourusername/hacktrack/issues)** • **[✨ Request Feature](https://github.com/yourusername/hacktrack/issues)**
 
 ---
 
@@ -84,8 +84,8 @@
 </td>
 <td align="center" width="25%">
 <img src="https://img.icons8.com/fluency/96/speed.png" width="64" alt="Speed"/>
-<h4>Instant Results</h4>
-<p><sub>HashingVectorizer provides lightning-fast embeddings with zero model download</sub></p>
+<h4>High Quality</h4>
+<p><sub>Sentence-transformers provides state-of-the-art embeddings for accurate matching</sub></p>
 </td>
 </tr>
 </table>
@@ -161,7 +161,7 @@
 ```bash
 ✅ Node.js 18+
 ✅ MongoDB (local or Atlas)
-✅ Python 3.8+ (for AI features)
+✅ Python 3.14.3 (for AI features)
 ```
 
 ### Installation
@@ -286,11 +286,11 @@ graph TB
 
 #### 🤖 **AI Service**
 
-[![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org)
+[![Python](https://img.shields.io/badge/Python-3.14.3-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org)
 [![Flask](https://img.shields.io/badge/Flask-3-000000?style=flat-square&logo=flask&logoColor=white)](https://flask.palletsprojects.com)
-[![scikit-learn](https://img.shields.io/badge/scikit--learn-1.3-F7931E?style=flat-square&logo=scikit-learn&logoColor=white)](https://scikit-learn.org)
-[![NumPy](https://img.shields.io/badge/NumPy-1.24-013243?style=flat-square&logo=numpy&logoColor=white)](https://numpy.org)
-[![HashingVectorizer](https://img.shields.io/badge/HashingVectorizer-ML-FF6F00?style=flat-square)](https://scikit-learn.org)
+[![Sentence Transformers](https://img.shields.io/badge/Sentence_Transformers-3.3-FF6F00?style=flat-square)](https://www.sbert.net)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.5-EE4C2C?style=flat-square&logo=pytorch&logoColor=white)](https://pytorch.org)
+[![NumPy](https://img.shields.io/badge/NumPy-2.2-013243?style=flat-square&logo=numpy&logoColor=white)](https://numpy.org)
 
 </td>
 </tr>
